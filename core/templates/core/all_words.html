@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h5>Список всех слов:</h5>
+    {% for word in words %}
+        <p>
+        <h5> [{{ word.rating }}] {{ word.eng }} - {{ word.rus }} [{{ word.part.name_rus }}] ({{ word.notes }})</h5>
+        </p>
+    {% endfor %}
+{% endblock %}
+
+
