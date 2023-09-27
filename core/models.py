@@ -1,4 +1,11 @@
 from django.db import models
+from django.utils.text import slugify
+
+
+def gen_slug(string):
+    """Генерирует slug, убирая не допустимые символы"""
+    slug = slugify(string, allow_unicode=True)
+    return slug
 
 
 class Part(models.Model):
@@ -17,6 +24,8 @@ class Word(models.Model):
     rus = models.CharField(max_length=255)
     rating = models.SmallIntegerField(default=-1)
 
+    slug = models.SlugField(max_length=150, unique=True, blank=True)
+
     notes = models.CharField(max_length=255, null=True, blank=True)
 
     """Отношения между моделями"""
@@ -29,7 +38,15 @@ class Word(models.Model):
     )
 
     def __str__(self):
+        """Определяет то, как будет отображаться экземпляр в админ панели и консоли"""
         return f"({self.eng.title()} - {self.rus.title()})"
 
+    def save(self, *args, **kwargs):
+        """Переопределяет метод save"""
+        if not self.id:
+            self.slug = slugify(self.eng)
+        super().save(*args, **kwargs)
+
     class Meta:
+        """Сортировка по рейтингу. Чем ниже рейтинг, тем выше в списке"""
         ordering = ['rating']
