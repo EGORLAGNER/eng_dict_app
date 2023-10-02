@@ -10,11 +10,19 @@ def gen_slug(string):
 
 class Part(models.Model):
     """Модель описывающая часть речи"""
-    name_eng = models.CharField(max_length=255, unique=True)
-    name_rus = models.CharField(max_length=255, unique=True)
+    eng = models.CharField(max_length=255, unique=True)
+    rus = models.CharField(max_length=255, unique=True)
+    description = models.CharField(max_length=255, null=True, blank=True)
+    slug = models.SlugField(max_length=150, unique=True, blank=True)
 
     def __str__(self):
-        return f'{self.name_eng} - {self.name_rus}'
+        return f'{self.eng} - {self.rus}'
+
+    def save(self, *args, **kwargs):
+        """Переопределяет метод save"""
+        if not self.id:
+            self.slug = slugify(self.eng)
+        super().save(*args, **kwargs)
 
 
 class Word(models.Model):
@@ -22,11 +30,11 @@ class Word(models.Model):
 
     eng = models.CharField(max_length=255)
     rus = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, null=True, blank=True)
     rating = models.SmallIntegerField(default=-1)
-
+    is_popular = models.BooleanField(default=False, blank=True)
+    is_visible = models.BooleanField(default=True, blank=True)
     slug = models.SlugField(max_length=150, unique=True, blank=True)
-
-    notes = models.CharField(max_length=255, null=True, blank=True)
 
     """Отношения между моделями"""
     part = models.ForeignKey(
