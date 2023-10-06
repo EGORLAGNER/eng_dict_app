@@ -1,21 +1,26 @@
 import pandas as pd
 from core.models import Word, Part
+from django.db.utils import IntegrityError
 
 EXCEL_DATA_FILE = 'C:\\Users\\LAGNER\\PycharmProjects\\eng_dict_app\\data_file.xlsx'
 
 
-def _check_is_string(*args):
-    """Возвращает True, если переданное значение не является строкой"""
+def _check_value_is_string(*args):
+    """Возвращает True, если переданное значение является строкой"""
     for value in args:
-        if not isinstance(value, str):
+        if isinstance(value, str):
             return True
+        else:
+            return False
 
 
-def _check_is_bool(*args):
-    """Возвращает True, если переданное значение не является строкой"""
+def _check_value_is_bool(*args):
+    """Возвращает True, если переданное значение является логическим"""
     for value in args:
-        if not isinstance(value, bool):
+        if isinstance(value, bool):
             return True
+        else:
+            return False
 
 
 def _get_data_from_excel(columns_range, rows_range, sheet_name):
@@ -53,16 +58,21 @@ def _add_words_in_db(list_with_dict):
         else:
             is_popular = False
 
-        if _check_is_string(eng, rus) or _check_is_bool(is_popular):
+        try:
+            if _check_value_is_string(eng) and _check_value_is_string(rus) and _check_value_is_bool(is_popular):
+                Word.objects.create(
+                    eng=eng.lower(),
+                    rus=rus.lower(),
+                    is_popular=is_popular,
+                )
+                print('добавлено')
+            else:
+                print('пропущено')
+                continue
+        except IntegrityError:
             continue
 
-        else:
-            Word.objects.create(
-                eng=eng.lower(),
-                rus=rus.lower(),
-                is_popular=is_popular,
-            )
-            print('yes')
+    print(f'Всего слов в базе: {Word.objects.all().count()}')
 
 
 def _add_parts_in_db(list_with_dict):
@@ -99,7 +109,7 @@ def start_process_add_words_in_db(flag=False):
 
     data_set_with_words = _get_data_from_excel(
         'A:D',
-        1000,
+        2000,
         'words',
     )
     if flag:
@@ -108,6 +118,19 @@ def start_process_add_words_in_db(flag=False):
     return data_set_with_words
 
 
+def delete_all_words_in_db(flag=False):
+    """Удаляет все слова в базе"""
+    if flag:
+        all_words = Word.objects.all()
+        for word in all_words:
+            word.delete()
+
+        print('Удаление завершено')
+        print(f'В базе {Word.objects.all().count()} слов')
+
+
 if __name__ == '__main__':
-    parts = start_process_add_parts_in_db(False)  # изменить аргумент на True для включения функции;
-    words = start_process_add_words_in_db(False)  # изменить аргумент на True для включения функции;
+    # parts = start_process_add_parts_in_db(False)  # изменить аргумент на True для включения функции;
+    # print(len(parts))
+    words = start_process_add_words_in_db(True)  # изменить аргумент на True для включения функции;
+    delete_all_words_in_db()

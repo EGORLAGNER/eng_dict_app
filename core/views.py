@@ -2,6 +2,9 @@ from django.shortcuts import render
 from django.views.generic import View
 
 from core.models import *
+from core.services.learn_words import learn_words
+
+
 
 
 class Index(View):
@@ -14,7 +17,7 @@ class Index(View):
 
 
 class AllWords(View):
-    """Показывает всех работников"""
+    """Показывает все слова имеющиеся в базе данных"""
 
     def get(self, request):
         search_query = request.GET.get('search', '')
@@ -25,3 +28,34 @@ class AllWords(View):
         context = {'words': word}
 
         return render(request, 'core/all_words.html', context)
+
+
+class LearnWords(View):
+    """Изучение слов"""
+
+    def get(self, request):
+        question, correct_answer, all_answers = learn_words()
+        request.session['correct_answer'] = correct_answer
+
+        context = {
+            'question': question,
+            'correct_answer': correct_answer,
+            'all_answers': all_answers,
+        }
+
+        # return render(request, 'core/learn_word.html', context)
+        return render(request, 'core/learn_words.html', context)
+
+    def post(self, request):
+        answer_user = request.POST.get('answer')
+        correct_answer = request.session.get('correct_answer')
+
+        if answer_user == correct_answer:
+            context = {
+                'result': 'Правильный ответ',
+            }
+        else:
+            context = {
+                'result': 'НЕ правильный ответ',
+            }
+        return render(request, 'core/answer.html', context=context)

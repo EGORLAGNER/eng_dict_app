@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <title>Вопрос и варианты ответа</title>
+    {{ question }}
+    <form method="post" action="{% url 'learn_word_url' %}">
+        {% csrf_token %}
+        <div class="question">
+            <p>Выберите правильный ответ:</p>
+        </div>
+        {% for answer in all_answers %}
+        <div class="options">
+            <label class="option">
+                <input type="radio" name="answer" value="{{ answer }}"> {{ answer }}
+            </label>
+        </div>
+        {% endfor %}
+        <button type="submit">Отправить</button>
+    </form>
+
+{% endblock %}
+
+
