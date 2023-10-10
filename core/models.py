@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.utils.text import slugify
 
@@ -28,6 +29,7 @@ class Part(models.Model):
 class Word(models.Model):
     """Модель описывающая слова - англ. и рус. значения"""
 
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     eng = models.CharField(max_length=255)
     rus = models.CharField(max_length=255)
     description = models.CharField(max_length=255, null=True, blank=True)

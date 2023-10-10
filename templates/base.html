@@ -32,6 +32,12 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'learn_word_url' %}">learn word</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login' %}">LOGIN</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">LOGOUT</a>
+                </li>
             </ul>
             <form class="d-flex" role="search" action="{% url 'all_words_url' %}">
                 <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search">
