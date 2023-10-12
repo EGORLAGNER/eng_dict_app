@@ -2,7 +2,7 @@ import pandas as pd
 from core.models import Word, Part
 from django.db.utils import IntegrityError
 
-EXCEL_DATA_FILE = 'C:\\Users\\LAGNER\\PycharmProjects\\eng_dict_app\\data_file.xlsx'
+EXCEL_DATA_FILE = 'X:\\LAGNER\\my_dict.xlsx'
 
 
 def _check_value_is_string(*args):
@@ -49,29 +49,42 @@ def _get_data_from_excel(columns_range, rows_range, sheet_name):
 
 def _add_words_in_db(list_with_dict):
     """Добавляет в базу данных части речи (Word)"""
+    count_add_words = 0
     for dictionary in list_with_dict:
         eng = dictionary['eng']
         rus = dictionary['rus']
         is_popular = dictionary['popular']
+        is_it = dictionary['it']
         if is_popular == 'true' or 'True':
             is_popular = True
         else:
             is_popular = False
 
+        if is_it == 'true' or 'True':
+            is_it = True
+        else:
+            is_it = False
+
         try:
-            if _check_value_is_string(eng) and _check_value_is_string(rus) and _check_value_is_bool(is_popular):
+            if (_check_value_is_string(eng) and
+                    _check_value_is_string(rus) and
+                    _check_value_is_bool(is_popular) and _check_value_is_bool(is_it)):
                 Word.objects.create(
                     eng=eng.lower(),
                     rus=rus.lower(),
                     is_popular=is_popular,
+                    is_it=is_it,
+                    user_id=1
                 )
                 print('добавлено')
+                count_add_words = count_add_words + 1
             else:
                 print('пропущено')
                 continue
         except IntegrityError:
             continue
 
+    print(f'Добавлено слов в базу: {count_add_words}')
     print(f'Всего слов в базе: {Word.objects.all().count()}')
 
 
@@ -108,7 +121,7 @@ def start_process_add_words_in_db(flag=False):
     """Запускает процесс добавления слов (Word) в базу данных"""
 
     data_set_with_words = _get_data_from_excel(
-        'A:D',
+        'A:E',
         2000,
         'words',
     )
@@ -133,4 +146,5 @@ if __name__ == '__main__':
     # parts = start_process_add_parts_in_db(False)  # изменить аргумент на True для включения функции;
     # print(len(parts))
     words = start_process_add_words_in_db(True)  # изменить аргумент на True для включения функции;
+    print()
     delete_all_words_in_db()

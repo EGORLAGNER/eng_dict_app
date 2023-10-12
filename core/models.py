@@ -35,6 +35,7 @@ class Word(models.Model):
     description = models.CharField(max_length=255, null=True, blank=True)
     rating = models.SmallIntegerField(default=-1)
     is_popular = models.BooleanField(default=False, blank=True)
+    is_it = models.BooleanField(default=False, blank=True)
     is_visible = models.BooleanField(default=True, blank=True)
     slug = models.SlugField(max_length=150, unique=True, blank=True)
 
