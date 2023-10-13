@@ -55,20 +55,17 @@ def _add_words_in_db(list_with_dict):
         rus = dictionary['rus']
         is_popular = dictionary['popular']
         is_it = dictionary['it']
-        if is_popular == 'true' or 'True':
-            is_popular = True
-        else:
+
+        if is_popular is not True:
             is_popular = False
 
-        if is_it == 'true' or 'True':
-            is_it = True
-        else:
+        if is_it is not True:
             is_it = False
 
         try:
-            if (_check_value_is_string(eng) and
-                    _check_value_is_string(rus) and
+            if (_check_value_is_string(eng) and _check_value_is_string(rus) and
                     _check_value_is_bool(is_popular) and _check_value_is_bool(is_it)):
+
                 Word.objects.create(
                     eng=eng.lower(),
                     rus=rus.lower(),
@@ -145,6 +142,6 @@ def delete_all_words_in_db(flag=False):
 if __name__ == '__main__':
     # parts = start_process_add_parts_in_db(False)  # изменить аргумент на True для включения функции;
     # print(len(parts))
-    words = start_process_add_words_in_db(True)  # изменить аргумент на True для включения функции;
-    print()
     delete_all_words_in_db()
+    print()
+    words = start_process_add_words_in_db(True)  # изменить аргумент на True для включения функции;
