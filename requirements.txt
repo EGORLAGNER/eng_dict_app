@@ -3,3 +3,5 @@ python-decouple==3.8
 pandas==2.1.1
 pytest==7.4.2
 pytest-django==4.5.2
+django_debug_toolbar==3.8.1
+
