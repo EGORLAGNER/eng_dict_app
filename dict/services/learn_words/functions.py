@@ -32,7 +32,7 @@ def get_all_user_words(username):
     Пока что для упрощения, набор слов - это все слова имеющиеся в базе"""
 
     user = User.objects.get(username=username)
-    return user.word_set.filter(is_visible=True)
+    return user.word_set.filter(is_visible=True).exclude(rus__isnull=True)
 
 
 def get_count_words_in_set(set_words):
