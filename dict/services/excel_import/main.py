@@ -131,17 +131,16 @@ def start_process_add_words_in_db(flag=False):
 def delete_all_words_in_db(flag=False):
     """Удаляет все слова в базе"""
     if flag:
-        all_words = Word.objects.all()
-        for word in all_words:
-            word.delete()
+        print(f'До удаления в базе данных было: {Word.objects.all().count()} слов')
+        Word.objects.all().delete()
 
         print('Удаление завершено')
-        print(f'В базе {Word.objects.all().count()} слов')
+        print(f'Сейчас в базе данных: {Word.objects.all().count()} слов')
 
 
 if __name__ == '__main__':
     # parts = start_process_add_parts_in_db(False)  # изменить аргумент на True для включения функции;
     # print(len(parts))
-    delete_all_words_in_db()
+    delete_all_words_in_db(True)
     print()
-    words = start_process_add_words_in_db(True)  # изменить аргумент на True для включения функции;
+    words = start_process_add_words_in_db(False)  # изменить аргумент на True для включения функции;
