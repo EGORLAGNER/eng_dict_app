@@ -13,7 +13,7 @@ class Index(View):
         text = 'Приложение для изучения английских слов'
         current_user = request.user
         context = {'context': text, 'user': current_user}
-        return render(request, 'core/main_page.html', context)
+        return render(request, 'dict/main_page.html', context)
 
 
 # class AllWords(View):
@@ -49,12 +49,12 @@ def all_words(request):
     else:
         word = user.word_set.all()
 
-    return render(request, 'core/all_words.html', {'words': word})
+    return render(request, 'dict/all_words.html', {'words': word})
 
 
 def hello_user(request):
     user = request.user
-    return render(request, 'core/hello_user.html', {'user': user})
+    return render(request, 'dict/hello_user.html', {'user': user})
 
 
 class LearnWords(View):
@@ -73,7 +73,7 @@ class LearnWords(View):
         }
 
         # return render(request, 'dict/learn_word.html', context)
-        return render(request, 'core/learn_words.html', context)
+        return render(request, 'dict/learn_words.html', context)
 
     def post(self, request):
         answer_user = request.POST.get('answer')
@@ -90,4 +90,4 @@ class LearnWords(View):
                 'correct_answer': correct_answer,
                 'question': question,
             }
-            return render(request, 'core/answer.html', context=context)
+            return render(request, 'dict/answer.html', context=context)
