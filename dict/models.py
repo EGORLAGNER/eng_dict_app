@@ -60,4 +60,4 @@ class Word(models.Model):
 
     class Meta:
         """Сортировка по рейтингу. Чем ниже рейтинг, тем выше в списке"""
-        ordering = ['rating']
+        ordering = ['eng']
