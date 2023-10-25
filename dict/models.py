@@ -31,7 +31,7 @@ class Word(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     eng = models.CharField(max_length=255)
-    rus = models.CharField(max_length=255)
+    rus = models.CharField(max_length=255, null=True, blank=True)
     description = models.CharField(max_length=255, null=True, blank=True)
     rating = models.SmallIntegerField(default=-1)
     is_popular = models.BooleanField(default=False, blank=True)
@@ -50,7 +50,10 @@ class Word(models.Model):
 
     def __str__(self):
         """Определяет то, как будет отображаться экземпляр в админ панели и консоли"""
-        return f"({self.eng.title()} - {self.rus.title()})"
+        if self.rus:
+            return f"{self.eng.lower()} - {self.rus}"
+        if not self.rus:
+            return f"{self.eng.lower()}"
 
     def save(self, *args, **kwargs):
         """Переопределяет метод save"""
