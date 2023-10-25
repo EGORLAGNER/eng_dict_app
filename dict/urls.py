@@ -1,6 +1,6 @@
 from django.urls import path
-from core.views import Index, LearnWords, all_words, hello_user
-# from core.views import Index, AllWords, LearnWords, hello_user
+from dict.views import Index, LearnWords, all_words, hello_user
+# from dict.views import Index, AllWords, LearnWords, hello_user
 from django.contrib.auth.views import LoginView, LogoutView
 
 urlpatterns = [

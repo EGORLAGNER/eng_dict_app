@@ -2,8 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.views.generic import View
 
-from core.models import *
-from core.services.learn_words import learn_words, change_rating
+from dict.models import *
+from dict.services.learn_words import learn_words, change_rating
 
 
 class Index(View):
@@ -28,7 +28,7 @@ class Index(View):
 #             word = Word.objects.all()
 #         context = {'words': word}
 #
-#         return render(request, 'core/all_words.html', context)
+#         return render(request, 'dict/all_words.html', context)
 
 #
 
@@ -36,7 +36,7 @@ class Index(View):
 # @login_required
 # def all_words(request):
 #     word = Word.objects.filter(user=request.user)
-#     return render(request, 'core/all_words.html', {'words': word})
+#     return render(request, 'dict/all_words.html', {'words': word})
 
 @login_required
 def all_words(request):
@@ -72,7 +72,7 @@ class LearnWords(View):
             'all_answers': all_answers,
         }
 
-        # return render(request, 'core/learn_word.html', context)
+        # return render(request, 'dict/learn_word.html', context)
         return render(request, 'core/learn_words.html', context)
 
     def post(self, request):

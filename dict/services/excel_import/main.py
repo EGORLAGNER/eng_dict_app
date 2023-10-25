@@ -1,5 +1,5 @@
 import pandas as pd
-from core.models import Word, Part
+from dict.models import Word, Part
 from django.db.utils import IntegrityError
 
 EXCEL_DATA_FILE = 'X:\\LAGNER\\my_dict.xlsx'

@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 
-from core.models import Word
+from dict.models import Word
 from random import randint
 
 

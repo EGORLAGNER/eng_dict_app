@@ -2,7 +2,7 @@ import pytest
 
 from contextlib import nullcontext as does_not_raise
 
-from core.services.excel_import.main import _check_value_is_bool, _check_value_is_string
+from dict.services.excel_import.main import _check_value_is_bool, _check_value_is_string
 
 
 # (4, [], 4, int, pytest.raises(TypeError)),
