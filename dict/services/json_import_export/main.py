@@ -91,5 +91,5 @@ def load_backup(flag=False):
 
 
 if __name__ == '__main__':
-    save_backup(True)   # передать True, чтобы активировать;
+    save_backup()   # передать True, чтобы активировать;
     load_backup()   # передать True, чтобы активировать;
