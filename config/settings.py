@@ -144,3 +144,6 @@ LOGGING = {
         },
     },
 }
+
+PATH_EXCEL_FILE = 'X:\\LAGNER\\my_dict.xlsx'
+PATH_JSON_FILE = 'X:\\LAGNER\\backup_db.json'
