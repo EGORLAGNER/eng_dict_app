@@ -148,6 +148,6 @@ def delete_all_words_in_db(flag=False):
 if __name__ == '__main__':
     # parts = start_process_add_parts_in_db(False)  # изменить аргумент на True для включения функции;
     # print(len(parts))
-    delete_all_words_in_db(True)
+    delete_all_words_in_db(False)
     print()
     words = start_process_add_words_in_db(True)  # изменить аргумент на True для включения функции;
