@@ -1,8 +1,9 @@
 from django.contrib.auth.models import User
 from dict.models import Word
 import json
+from config.settings import PATH_JSON_FILE
 
-JSON_BACKUP_FILE = 'X:\\LAGNER\\backup_db.json'
+JSON_BACKUP_FILE = PATH_JSON_FILE
 
 
 def get_all_words_in_db():
@@ -78,18 +79,18 @@ def add_words_in_db(list_with_dict):
     print(f'Всего слов в базе: {Word.objects.all().count()}')
 
 
-def save_backup(flag=False):
+def save_backup_json(flag=False):
     if flag:
         words = get_all_words_in_db()
         json_export_in_file(words, JSON_BACKUP_FILE)
 
 
-def load_backup(flag=False):
+def load_backup_json(flag=False):
     if flag:
         words = json_import_from_file(JSON_BACKUP_FILE)
         add_words_in_db(words)
 
 
 if __name__ == '__main__':
-    save_backup()   # передать True, чтобы активировать;
-    load_backup()   # передать True, чтобы активировать;
+    save_backup_json()   # передать True, чтобы активировать;
+    load_backup_json()   # передать True, чтобы активировать;

@@ -27,12 +27,19 @@ def change_rating(rus_value_word, increase_rating=False):
         word.save()
 
 
-def get_all_user_words(username):
-    """Набор слов - это выборка, взятая для изучения.
-    Пока что для упрощения, набор слов - это все слова имеющиеся в базе"""
-
+def get_all_words(username):
     user = User.objects.get(username=username)
     return user.word_set.filter(is_visible=True).exclude(rus__isnull=True)
+
+
+def get_it_words(username):
+    user = User.objects.get(username=username)
+    return user.word_set.filter(is_it=True).exclude(rus__isnull=True)
+
+
+def get_popular_words(username):
+    user = User.objects.get(username=username)
+    return user.word_set.filter(is_popular=True).exclude(rus__isnull=True)
 
 
 def get_count_words_in_set(set_words):
@@ -76,9 +83,8 @@ def get_all_answers(words):
     return words[0].rus, words[1].rus, words[2].rus, words[3].rus
 
 
-def learn_words(user):
-    set_words = get_all_user_words(user)
-    print(set_words.count())
+def learn_words(user, queryset):
+    set_words = queryset(user)
     random_numbers = get_random_numbers(set_words)
     list_words = get_four_words(set_words, random_numbers)
     current_word = get_current_word(list_words)

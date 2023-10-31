@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <title>Вопрос и варианты ответа</title>
+    {{ question }}
+    <form method="post" action="{% url 'setting_learn_url' %}">
+        {% csrf_token %}
+        <div class="question">
+            <p>Выберите способ изучения:</p>
+        </div>
+        <div class="options">
+            {% for setting in settings %}
+                <label class="option">
+                    <input type="radio" name="type_learn" value="{{ setting }}"> {{ setting }}
+                </label>
+            {% endfor %}
+        </div>
+        <button type="submit">Выбрать</button>
+    </form>
+{% endblock %}
+
+

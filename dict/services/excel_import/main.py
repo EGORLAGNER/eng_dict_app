@@ -1,8 +1,9 @@
 import pandas as pd
 from dict.models import Word, Part
 from django.db.utils import IntegrityError
+from config.settings import PATH_EXCEL_FILE
 
-EXCEL_DATA_FILE = 'X:\\LAGNER\\my_dict.xlsx'
+EXCEL_DATA_FILE = PATH_EXCEL_FILE
 
 
 def _check_value_is_string(*args):
@@ -129,6 +130,8 @@ def start_process_add_words_in_db(flag=False):
     if flag:
         _add_words_in_db(data_set_with_words)
         print('Импорт СЛОВ в базу завершен!')
+        print(f'{Word.objects.filter(is_it=True).count()} - с флагом IT')
+        print(f'{Word.objects.filter(is_popular=True).count()} - с флагом POPULAR')
     return data_set_with_words
 
 

@@ -1,9 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.views.generic import View
+# from django.http import HttpResponse
 
 from dict.models import *
-from dict.services.learn_words import learn_words, change_rating
+from dict.services.learn_words import learn_words, change_rating, get_it_words, get_all_words, get_popular_words
+from dict.services.json_import_export import save_backup_json
 
 
 class Index(View):
@@ -15,28 +17,6 @@ class Index(View):
         context = {'context': text, 'user': current_user}
         return render(request, 'dict/main_page.html', context)
 
-
-# class AllWords(View):
-#     """Показывает все слова имеющиеся в базе данных"""
-#
-#     @login_required
-#     def get(self, request):
-#         search_query = request.GET.get('search', '')
-#         if search_query:
-#             word = Word.objects.filter(eng__icontains=search_query)
-#         else:
-#             word = Word.objects.all()
-#         context = {'words': word}
-#
-#         return render(request, 'dict/all_words.html', context)
-
-#
-
-
-# @login_required
-# def all_words(request):
-#     word = Word.objects.filter(user=request.user)
-#     return render(request, 'dict/all_words.html', {'words': word})
 
 @login_required
 def all_words(request):
@@ -57,12 +37,50 @@ def hello_user(request):
     return render(request, 'dict/hello_user.html', {'user': user})
 
 
+class SettingLearn(View):
+    """Настройки изучения слов"""
+
+    def get(self, request):
+        type_learn = request.COOKIES.get('type_learn')
+
+        if type_learn == 'None' or not type_learn:
+            settings = []
+            all_words_count = Word.objects.all().count()
+            if all_words_count > 5:
+                settings.append('all')
+            it_word_count = Word.objects.filter(is_it=True).count()
+            if it_word_count > 5:
+                settings.append('it')
+            popular_word_count = Word.objects.filter(is_popular=True).count()
+            if popular_word_count > 5:
+                settings.append('popular')
+
+            return render(request, 'dict/setting_learn.html', {'settings': settings})
+        else:
+            return redirect('learn_word_url')
+
+    def post(self, request):
+        type_learn = request.POST.get('type_learn')
+
+        response = redirect('learn_word_url')  # сохранение куки
+        response.set_cookie('type_learn', type_learn)
+        return response
+
+
 class LearnWords(View):
     """Изучение слов"""
 
     def get(self, request):
         user = request.user
-        question, correct_answer, all_answers = learn_words(user)
+        setting = request.COOKIES.get('type_learn')
+        options = {
+            'all': get_all_words,
+            'it': get_it_words,
+            'popular': get_popular_words,
+        }
+        user_setting_learn = options.get(setting)
+
+        question, correct_answer, all_answers = learn_words(user, user_setting_learn)
         request.session['question'] = question
         request.session['correct_answer'] = correct_answer
 
@@ -91,3 +109,32 @@ class LearnWords(View):
                 'question': question,
             }
             return render(request, 'dict/answer.html', context=context)
+
+
+# class MyFunc(View):
+#     def get(self, request):
+#         name_from_cookie = request.COOKIES.get('name', False)   # чтение куки
+#
+#         if name_from_cookie:
+#             response = redirect('learn_word_url')
+#             return response
+#
+#         else:
+#             context = {
+#                 'name': name_from_cookie
+#             }
+#             response = render(request, 'core/learn_words.html', context)    # сохранение куки
+#             response.set_cookie('name', 'Alex')
+#             return response
+#
+
+def del_setting(request):
+    """Удаление настроек изучения."""
+    response = redirect('main_page_url')
+    response.set_cookie('type_learn', 'None')
+    return response
+
+
+def save_json(request):
+    save_backup_json(True)
+    return render(request, 'dict/json_save_confirm.html')
