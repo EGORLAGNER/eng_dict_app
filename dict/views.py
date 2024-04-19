@@ -21,9 +21,9 @@ class Index(View):
 @login_required
 def all_words(request):
     """Показывает все слова юзера имеющиеся в базе данных и реализует простой поиск в нав бар"""
-    user_name = request.user
+    user_email = request.user
     search_query = request.GET.get('search', '')
-    user = User.objects.get(username=user_name)
+    user = User.objects.get(email=user_email)
     if search_query:
         word = user.word_set.filter(eng__icontains=search_query)
     else:
