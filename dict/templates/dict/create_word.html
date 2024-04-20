@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    {% if form %}
+        <p>Заполните форму:</p>
+        <form method="post">
+            {{ form.as_p }}
+            {% csrf_token %}
+            <button type="submit">создать слово</button>
+        </form>
+    {% endif %}
+    {% if word %}
+        <p>Успешно добавлено слово:</p>
+        <p>{{ word.eng }} - {{ word.rus }} - {{ word.description }}</p>
+    {% endif %}
+{% endblock %}
+
+
+

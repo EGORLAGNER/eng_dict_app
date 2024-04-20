@@ -46,6 +46,9 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'logout' %}">LOGOUT</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'create_word_url' %}">создать слово</a>
+                </li>
             </ul>
             <form class="d-flex" role="search" action="{% url 'all_words_url' %}">
                 <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search">

@@ -7,6 +7,8 @@ from dict.models import *
 from dict.services.learn_words import learn_words, change_rating, get_it_words, get_all_words, get_popular_words
 from dict.services.json_import_export import save_backup_json
 
+from .forms import CreatePostForm
+
 
 class Index(View):
     """Заглавная страница приложения"""
@@ -138,3 +140,33 @@ def del_setting(request):
 def save_json(request):
     save_backup_json(True)
     return render(request, 'dict/json_save_confirm.html')
+
+
+def create_word(request):
+    if request.method == 'POST':
+        form = CreatePostForm(request.POST)
+        if form.is_valid():
+            # Создать модель на основе формы, но не сохранять в базу.
+            # Позволяет выполнить дополнительные действия с объектом перед сохранением его в базе данных
+            word = form.save(commit=False)
+            word.user = request.user
+            word.save()
+
+            # валидная форма, показывает сохраненные новые слова
+            return render(request,
+                          'dict/create_word.html',
+                          {'word': word})
+        # если форма не валидна, то показывает заполненную форму и ошибку
+        else:
+            return render(request,
+                          'dict/create_word.html',
+                          {'form': form})
+
+            # get запрос показывает пустую форму
+
+    else:
+        form = CreatePostForm()
+        return render(request,
+                      'dict/create_word.html',
+                      {'form': form})
+
