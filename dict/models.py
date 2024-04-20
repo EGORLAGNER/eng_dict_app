@@ -9,21 +9,21 @@ def gen_slug(string):
     return slug
 
 
-class Part(models.Model):
-    """Модель описывающая часть речи"""
-    eng = models.CharField(max_length=255, unique=True)
-    rus = models.CharField(max_length=255, unique=True)
-    description = models.CharField(max_length=255, null=True, blank=True)
-    slug = models.SlugField(max_length=150, unique=True, blank=True)
-
-    def __str__(self):
-        return f'{self.eng} - {self.rus}'
-
-    def save(self, *args, **kwargs):
-        """Переопределяет метод save"""
-        if not self.id:
-            self.slug = slugify(self.eng)
-        super().save(*args, **kwargs)
+# class Part(models.Model):
+#     """Модель описывающая часть речи"""
+#     eng = models.CharField(max_length=255, unique=True)
+#     rus = models.CharField(max_length=255, unique=True)
+#     description = models.CharField(max_length=255, null=True, blank=True)
+#     slug = models.SlugField(max_length=150, unique=True, blank=True)
+#
+#     def __str__(self):
+#         return f'{self.eng} - {self.rus}'
+#
+#     def save(self, *args, **kwargs):
+#         """Переопределяет метод save"""
+#         if not self.id:
+#             self.slug = slugify(self.eng)
+#         super().save(*args, **kwargs)
 
 
 class Word(models.Model):
@@ -33,20 +33,18 @@ class Word(models.Model):
     eng = models.CharField(max_length=255)
     rus = models.CharField(max_length=255, null=True, blank=True)
     description = models.CharField(max_length=255, null=True, blank=True)
-    rating = models.SmallIntegerField(default=-1)
-    is_popular = models.BooleanField(default=False, blank=True)
-    is_it = models.BooleanField(default=False, blank=True)
+    rating = models.SmallIntegerField(default=0)
     is_visible = models.BooleanField(default=True, blank=True)
     slug = models.SlugField(max_length=150, unique=True, blank=True)
 
-    """Отношения между моделями"""
-    part = models.ForeignKey(
-        'Part',  # главная модель с которой строятся отношения One to Many
-        on_delete=models.SET_NULL,  # обязательный аргумент, поведение при удалении связанного экземпляра
-        null=True,
-        blank=True,
-        related_name='words'  # присваивает связанное имя (если явно не указывать, то сгенерируется автоматически)
-    )
+    # """Отношения между моделями"""
+    # part = models.ForeignKey(
+    #     'Part',  # главная модель с которой строятся отношения One to Many
+    #     on_delete=models.SET_NULL,  # обязательный аргумент, поведение при удалении связанного экземпляра
+    #     null=True,
+    #     blank=True,
+    #     related_name='words'  # присваивает связанное имя (если явно не указывать, то сгенерируется автоматически)
+    # )
 
     def __str__(self):
         """Определяет то, как будет отображаться экземпляр в админ панели и консоли"""
@@ -58,7 +56,7 @@ class Word(models.Model):
     def save(self, *args, **kwargs):
         """Переопределяет метод save"""
         if not self.id:
-            self.slug = slugify(self.eng)
+            self.slug = f'{self.user.custom_id}_{slugify(self.eng)}'
         super().save(*args, **kwargs)
 
     class Meta:
