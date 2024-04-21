@@ -62,3 +62,29 @@ class Word(models.Model):
     class Meta:
         """Сортировка по рейтингу. Чем ниже рейтинг, тем выше в списке"""
         ordering = ['eng']
+
+
+class Category(models.Model):
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             related_name='categories')
+
+    name = models.CharField(max_length=255,
+                            unique=True)
+
+    slug = models.SlugField(max_length=255,
+                            unique=True,
+                            blank=True)
+
+    words = models.ManyToManyField(Word,
+                                   blank=True,
+                                   related_name='category')
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        """Переопределяет метод save"""
+        if not self.id:
+            self.slug = f'{self.user.custom_id}_{slugify(self.name)}'
+        super().save(*args, **kwargs)
