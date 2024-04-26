@@ -1,5 +1,6 @@
 import pandas as pd
-from dict.models import Word, Part
+from dict.models import Word
+from account.models import User
 from django.db.utils import IntegrityError
 from config.settings import PATH_EXCEL_FILE
 
@@ -70,13 +71,11 @@ def _add_words_in_db(list_with_dict):
         try:
             if (_check_value_is_string(eng) and
                     _check_value_is_bool(is_popular) and _check_value_is_bool(is_it)):
-
+                user = User.objects.get(custom_id=1713612565771)
                 Word.objects.create(
                     eng=eng.lower(),
                     rus=rus,
-                    is_popular=is_popular,
-                    is_it=is_it,
-                    user_id=1
+                    user=user
                 )
                 print('добавлено')
                 count_add_words = count_add_words + 1
@@ -90,35 +89,6 @@ def _add_words_in_db(list_with_dict):
     print(f'Всего слов в базе: {Word.objects.all().count()}')
 
 
-def _add_parts_in_db(list_with_dict):
-    """Добавляет в базу данных части речи (Part)"""
-    for dictionary in list_with_dict:
-        eng = dictionary['eng']
-        rus = dictionary['rus']
-        description = dictionary['description']
-
-        Part.objects.create(
-            eng=eng.lower(),
-            rus=rus.lower(),
-            description=description.lower(),
-        )
-
-
-def start_process_add_parts_in_db(flag=False):
-    """Запускает процесс добавления частей речи (Part) в базу данных"""
-
-    data_set_with_parts = _get_data_from_excel(
-        'A:C',
-        10,
-        'parts',
-    )
-
-    if flag:
-        _add_parts_in_db(data_set_with_parts)
-        print('Импорт ЧАСТЕЙ РЕЧИ в базу завершен!')
-    return data_set_with_parts
-
-
 def start_process_add_words_in_db(flag=False):
     """Запускает процесс добавления слов (Word) в базу данных"""
 
@@ -130,8 +100,6 @@ def start_process_add_words_in_db(flag=False):
     if flag:
         _add_words_in_db(data_set_with_words)
         print('Импорт СЛОВ в базу завершен!')
-        print(f'{Word.objects.filter(is_it=True).count()} - с флагом IT')
-        print(f'{Word.objects.filter(is_popular=True).count()} - с флагом POPULAR')
     return data_set_with_words
 
 
