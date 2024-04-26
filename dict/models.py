@@ -1,6 +1,7 @@
 from account.models import User
 from django.db import models
 from django.utils.text import slugify
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 def gen_slug(string):
@@ -29,13 +30,31 @@ def gen_slug(string):
 class Word(models.Model):
     """Модель описывающая слова - англ. и рус. значения"""
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             related_name='words'
+                             )
     eng = models.CharField(max_length=255)
-    rus = models.CharField(max_length=255, null=True, blank=True)
-    description = models.CharField(max_length=255, null=True, blank=True)
-    rating = models.SmallIntegerField(default=0)
-    is_visible = models.BooleanField(default=True, blank=True)
-    slug = models.SlugField(max_length=150, unique=True, blank=True)
+    rus = models.CharField(max_length=255,
+                           null=True,
+                           blank=True
+                           )
+    description = models.TextField(max_length=255,
+                                   null=True,
+                                   blank=True
+                                   )
+    association = models.TextField(max_length=255,
+                                   null=True,
+                                   blank=True
+                                   )
+    rating = models.SmallIntegerField(default=0,
+                                      validators=(MinValueValidator, MaxValueValidator,)
+                                      )
+    is_learned = models.BooleanField(default=False)
+    slug = models.SlugField(max_length=150,
+                            unique=True,
+                            blank=True
+                            )
 
     # """Отношения между моделями"""
     # part = models.ForeignKey(

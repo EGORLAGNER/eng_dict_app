@@ -9,4 +9,5 @@ class CreatePostForm(forms.ModelForm):
             'eng',
             'rus',
             'description',
+            'association',
         )
