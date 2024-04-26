@@ -27,9 +27,9 @@ def all_words(request):
     search_query = request.GET.get('search', '')
     user = User.objects.get(email=user_email)
     if search_query:
-        word = user.word_set.filter(eng__icontains=search_query)
+        word = user.words.filter(eng__icontains=search_query)
     else:
-        word = user.words.all()
+        word = user.words.prefetch_related('category').all()
 
     return render(request, 'dict/all_words.html', {'words': word})
 
