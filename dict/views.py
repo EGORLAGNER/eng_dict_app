@@ -29,7 +29,7 @@ def all_words(request):
     if search_query:
         word = user.word_set.filter(eng__icontains=search_query)
     else:
-        word = user.word_set.all()
+        word = user.words.all()
 
     return render(request, 'dict/all_words.html', {'words': word})
 
