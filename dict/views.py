@@ -11,11 +11,11 @@ from dict.services.json_import_export import save_backup_json
 from .forms import CreatePostForm
 
 
-class Index(View):
+class MainPage(View):
     """Заглавная страница приложения"""
 
     def get(self, request):
-        text = 'Приложение для изучения английских слов'
+        text = 'Добро пожаловать в приложение для изучения английских слов'
         current_user = request.user
         context = {'context': text, 'user': current_user}
         return render(request, 'dict/main_page.html', context)
@@ -40,97 +40,6 @@ def hello_user(request):
     return render(request, 'dict/hello_user.html', {'user': user})
 
 
-class SettingLearn(View):
-    """Настройки изучения слов"""
-
-    def get(self, request):
-        type_learn = request.COOKIES.get('type_learn')
-
-        if type_learn == 'None' or not type_learn:
-            settings = []
-            all_words_count = Word.objects.all().count()
-            if all_words_count > 5:
-                settings.append('all')
-            it_word_count = Word.objects.filter(is_it=True).count()
-            if it_word_count > 5:
-                settings.append('it')
-            popular_word_count = Word.objects.filter(is_popular=True).count()
-            if popular_word_count > 5:
-                settings.append('popular')
-
-            return render(request, 'dict/setting_learn.html', {'settings': settings})
-        else:
-            return redirect('learn_word_url')
-
-    def post(self, request):
-        type_learn = request.POST.get('type_learn')
-
-        response = redirect('learn_word_url')  # сохранение куки
-        response.set_cookie('type_learn', type_learn)
-        return response
-
-
-class LearnWords(View):
-    """Изучение слов"""
-
-    def get(self, request):
-        user = request.user
-        setting = request.COOKIES.get('type_learn')
-        options = {
-            'all': get_all_words,
-            'it': get_it_words,
-            'popular': get_popular_words,
-        }
-        user_setting_learn = options.get(setting)
-
-        question, correct_answer, all_answers = learn_words(user, user_setting_learn)
-        request.session['question'] = question
-        request.session['correct_answer'] = correct_answer
-
-        context = {
-            'question': question,
-            'correct_answer': correct_answer,
-            'all_answers': all_answers,
-        }
-
-        # return render(request, 'dict/learn_word.html', context)
-        return render(request, 'dict/learn_words.html', context)
-
-    def post(self, request):
-        answer_user = request.POST.get('answer')
-        correct_answer = request.session.get('correct_answer')
-        question = request.session.get('question')
-
-        if answer_user == correct_answer:
-            change_rating(correct_answer, True)
-
-            return redirect('learn_word_url')
-        else:
-            change_rating(correct_answer)
-            context = {
-                'correct_answer': correct_answer,
-                'question': question,
-            }
-            return render(request, 'dict/answer.html', context=context)
-
-
-# class MyFunc(View):
-#     def get(self, request):
-#         name_from_cookie = request.COOKIES.get('name', False)   # чтение куки
-#
-#         if name_from_cookie:
-#             response = redirect('learn_word_url')
-#             return response
-#
-#         else:
-#             context = {
-#                 'name': name_from_cookie
-#             }
-#             response = render(request, 'core/learn_words.html', context)    # сохранение куки
-#             response.set_cookie('name', 'Alex')
-#             return response
-#
-
 def del_setting(request):
     """Удаление настроек изучения."""
     response = redirect('main_page_url')
@@ -146,6 +55,7 @@ def save_json(request):
 def create_word(request):
     if request.method == 'POST':
         form = CreatePostForm(request.POST)
+        form.fields['category'].queryset = Category.objects.filter(user=request.user)
         if form.is_valid():
             # Создать модель на основе формы, но не сохранять в базу.
             # Позволяет выполнить дополнительные действия с объектом перед сохранением его в базе данных
@@ -167,6 +77,7 @@ def create_word(request):
 
     else:
         form = CreatePostForm()
+        form.fields['category'].queryset = Category.objects.filter(user=request.user)
         return render(request,
                       'dict/create_word.html',
                       {'form': form})
@@ -187,3 +98,83 @@ class SelectCategory(View):
             request.session['categories'] = name_category
 
         return render(request, 'dict/select_category.html')
+
+
+# class LearnWords(View):
+#     """Изучение слов"""
+#
+#     def get(self, request):
+#         user = request.user
+#
+#         return render(request, 'dict/learn_words.html', context)
+#
+#     def post(self, request):
+#         answer_user = request.POST.get('answer')
+#         correct_answer = request.session.get('correct_answer')
+#         question = request.session.get('question')
+#
+#         if answer_user == correct_answer:
+#             change_rating(correct_answer, True)
+#
+#             return redirect('learn_word_url')
+#         else:
+#             change_rating(correct_answer)
+#             context = {
+#                 'correct_answer': correct_answer,
+#                 'question': question,
+#             }
+#             return render(request, 'dict/answer.html', context=context)
+
+
+# class LearnWords(View):
+#     """Изучение слов"""
+#
+#     def get(self, request):
+#         user = request.user
+#         setting = request.COOKIES.get('type_learn')
+#         options = {
+#             'all': get_all_words,
+#             'it': get_it_words,
+#             'popular': get_popular_words,
+#         }
+#         user_setting_learn = options.get(setting)
+#
+#         question, correct_answer, all_answers = learn_words(user, user_setting_learn)
+#         request.session['question'] = question
+#         request.session['correct_answer'] = correct_answer
+#
+#         context = {
+#             'question': question,
+#             'correct_answer': correct_answer,
+#             'all_answers': all_answers,
+#         }
+#
+#         # return render(request, 'dict/learn_word.html', context)
+#         return render(request, 'dict/learn_words.html', context)
+#
+#     def post(self, request):
+#         answer_user = request.POST.get('answer')
+#         correct_answer = request.session.get('correct_answer')
+#         question = request.session.get('question')
+#
+#         if answer_user == correct_answer:
+#             change_rating(correct_answer, True)
+#
+#             return redirect('learn_word_url')
+#         else:
+#             change_rating(correct_answer)
+#             context = {
+#                 'correct_answer': correct_answer,
+#                 'question': question,
+#             }
+#             return render(request, 'dict/answer.html', context=context)
+
+
+@login_required
+def profile(request):
+    if request.method == 'GET':
+        user_name = request.user.username
+        return render(request, 'dict/profile.html', context={'user_name': user_name})
+
+    if request.method == 'POST':
+        pass

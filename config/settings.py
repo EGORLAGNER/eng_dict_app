@@ -153,5 +153,5 @@ PATH_EXCEL_FILE = 'X:\\LAGNER\\my_dict.xlsx'
 PATH_JSON_FILE = 'X:\\LAGNER\\backup_db.json'
 
 AUTH_USER_MODEL = 'account.User'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/profile/'
 LOGOUT_REDIRECT_URL = '/'
