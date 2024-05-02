@@ -67,8 +67,7 @@ class Category(models.Model):
                              on_delete=models.CASCADE,
                              related_name='categories')
 
-    name = models.CharField(max_length=255,
-                            unique=True)
+    name = models.CharField(max_length=255)
 
     slug = models.SlugField(max_length=255,
                             unique=True,
