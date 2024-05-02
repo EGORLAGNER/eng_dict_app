@@ -1,4 +1,4 @@
-from dict.models import Word
+from dict.models import Word, Category
 from django import forms
 
 
@@ -11,3 +11,10 @@ class CreatePostForm(forms.ModelForm):
             'description',
             'association',
         )
+
+
+class SelectCategoryForm(forms.Form):
+    categories = forms.ModelMultipleChoiceField(
+        queryset=None,
+        # widget=forms.CheckboxSelectMultiple
+    )

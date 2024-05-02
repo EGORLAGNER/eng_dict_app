@@ -1,5 +1,5 @@
 from django.urls import path
-from dict.views import Index, LearnWords, all_words, hello_user, SettingLearn, del_setting, save_json, create_word
+from dict.views import *
 from django.contrib.auth.views import LoginView, LogoutView
 
 urlpatterns = [
@@ -13,4 +13,7 @@ urlpatterns = [
     path('json_backup/', save_json, name='save_json_url'),
     path('del_setting/', del_setting, name='del_setting_url'),
     path('create_word/', create_word, name='create_word_url'),
+    path('select_category/', SelectCategory.as_view(), name='select_category_url'),
+
+
 ]

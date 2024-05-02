@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.views.generic import View
 # from django.http import HttpResponse
+from .forms import SelectCategoryForm
 
 from dict.models import *
 from dict.services.learn_words import learn_words, change_rating, get_it_words, get_all_words, get_popular_words
@@ -170,3 +171,19 @@ def create_word(request):
                       'dict/create_word.html',
                       {'form': form})
 
+
+class SelectCategory(View):
+    def get(self, request):
+        form = SelectCategoryForm()
+        form.fields['categories'].queryset = Category.objects.filter(user=request.user)
+        return render(request, 'dict/select_category.html', {'form': form})
+
+    def post(self, request):
+        form = SelectCategoryForm(request.POST)
+        form.fields['categories'].queryset = Category.objects.filter(user=request.user)  # Динамически задаем queryset
+        if form.is_valid():
+            categories_obj = form.cleaned_data['categories']
+            name_category = [obj.name for obj in categories_obj]
+            request.session['categories'] = name_category
+
+        return render(request, 'dict/select_category.html')
