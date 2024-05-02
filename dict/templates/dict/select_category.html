@@ -1,0 +1,64 @@
+{#{% extends 'base.html' %}#}
+{##}
+{#{% block content %}#}
+{#    {% if categories %}#}
+{#        <div class="question">#}
+{#            <p>Выберите категорию или категории для изучения слов:</p>#}
+{#        </div>#}
+{#        <form method="post" action="{% url 'sc' %}">#}
+{#            {% csrf_token %}#}
+{#            <div class="options">#}
+{#                {% for category in categories %}#}
+{#                    <label class="option">#}
+{#                        <input type="checkbox" name="categories" value="{{ category }}"> {{ category }}#}
+{#                    </label>#}
+{#                {% endfor %}#}
+{#            </div>#}
+{#            <button type="submit">Выбрать</button>#}
+{#        </form>#}
+{##}
+{#    {% endif %}#}
+{#{% endblock %}#}
+
+{#{% extends 'base.html' %}#}
+{##}
+{#{% block content %}#}
+{#    {% if categories %}#}
+{#        <div class="question">#}
+{#            <p>Выберите категорию или категории для изучения слов:</p>#}
+{#        </div>#}
+{#        <form method="post" action="{% url 'sc' %}">#}
+{#            {% csrf_token %}#}
+{#            <div class="options">#}
+{#                {% for category in categories %}#}
+{#                    <label class="option">#}
+{#                        <input type="checkbox" name="categories" value="{{ category }}"> {{ category }}#}
+{#                    </label>#}
+{#                {% endfor %}#}
+{#            </div>#}
+{#            <button type="submit">Выбрать</button>#}
+{#        </form>#}
+{#    {% endif %}#}
+{#{% endblock %}#}
+
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="question">
+        <p>Выберите категорию или категории для изучения слов:</p>
+    </div>
+    <form method="post" action="{% url 'select_category_url' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Выбрать</button>
+
+    </form>
+{% endblock %}
+
+
+
+
+
+
+
+
