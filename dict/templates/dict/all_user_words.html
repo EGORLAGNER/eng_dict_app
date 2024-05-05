@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <form class="d-flex" role="search" action="{% url 'all_user_words_url' %}">
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+    </form>
+    <h5>Список всех слов:</h5>
+    {% for word in words %}
+        <p><a href="{{ word.get_absolute_url }}">{{ word.rating }} {{ word.eng }} - {{ word.rus }}</a>
+            ({{ word.description }}) |
+            {% for cat in word.category.all %}
+                {{ cat }} |
+            {% endfor %}
+        </p>
+    {% endfor %}
+{% endblock %}

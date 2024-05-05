@@ -1,9 +1,0 @@
-{% extends 'base.html' %}
-
-{% block content %}
-    <h5>Список всех слов:</h5>
-    {% for word in words %}
-        <h6><a href="/admin/dict/word/{{ word.id }}/change/">{{ word.rating }} {{ word.eng }} - {{ word.rus }}</a> ({{ word.description }})
-        </h6>
-    {% endfor %}
-{% endblock %}

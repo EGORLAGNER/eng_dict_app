@@ -1,14 +1,12 @@
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 from django.views.generic import View
-# from django.http import HttpResponse
 from .forms import SelectCategoryForm
 
 from dict.models import *
-from dict.services.learn_words import learn_words, change_rating, get_it_words, get_all_words, get_popular_words
 from dict.services.json_import_export import save_backup_json
 
-from .forms import CreatePostForm
+from .forms import CreateWordForm, WordDetailForm
 
 
 class MainPage(View):
@@ -19,20 +17,6 @@ class MainPage(View):
         current_user = request.user
         context = {'context': text, 'user': current_user}
         return render(request, 'dict/main_page.html', context)
-
-
-@login_required
-def all_words(request):
-    """Показывает все слова юзера имеющиеся в базе данных и реализует простой поиск в нав бар"""
-    user_email = request.user
-    search_query = request.GET.get('search', '')
-    user = User.objects.get(email=user_email)
-    if search_query:
-        word = user.words.filter(eng__icontains=search_query)
-    else:
-        word = user.words.prefetch_related('category').all()
-
-    return render(request, 'dict/all_words.html', {'words': word})
 
 
 def hello_user(request):
@@ -52,9 +36,9 @@ def save_json(request):
     return render(request, 'dict/json_save_confirm.html')
 
 
-def create_word(request):
-    if request.method == 'POST':
-        form = CreatePostForm(request.POST)
+class WordCreate(LoginRequiredMixin, View):
+    def post(self, request):
+        form = CreateWordForm(request.POST)
         form.fields['category'].queryset = Category.objects.filter(user=request.user)
         if form.is_valid():
             # Создать модель на основе формы, но не сохранять в базу.
@@ -75,8 +59,8 @@ def create_word(request):
 
             # get запрос показывает пустую форму
 
-    else:
-        form = CreatePostForm()
+    def get(self, request):
+        form = CreateWordForm()
         form.fields['category'].queryset = Category.objects.filter(user=request.user)
         return render(request,
                       'dict/create_word.html',
@@ -169,12 +153,58 @@ class SelectCategory(View):
 #             }
 #             return render(request, 'dict/answer.html', context=context)
 
+# @login_required
+# def profile(request):
+#     if request.method == 'GET':
+#         user_name = request.user.username
+#         return render(request, 'dict/profile.html', context={'user_name': user_name})
+#
+#     if request.method == 'POST':
+#         pass
 
-@login_required
-def profile(request):
-    if request.method == 'GET':
-        user_name = request.user.username
-        return render(request, 'dict/profile.html', context={'user_name': user_name})
 
-    if request.method == 'POST':
-        pass
+class Profile(LoginRequiredMixin, View):
+    def get(self, request):
+        if request.method == 'GET':
+            user_name = request.user.username
+            return render(request, 'dict/profile.html', context={'user_name': user_name})
+
+        if request.method == 'POST':
+            pass
+
+
+class AllUserWords(LoginRequiredMixin, View):
+    def get(self, request):
+        """Показывает все слова юзера"""
+        user = request.user
+        search_query = request.GET.get('search', '')
+        if search_query:
+            word = user.words.filter(eng__icontains=search_query)
+        else:
+            word = user.words.prefetch_related('category').all()
+        return render(request, 'dict/all_user_words.html', {'words': word})
+
+
+class WordDetail(LoginRequiredMixin, View):
+    def get(self, request, slug):
+        word = Word.objects.get(slug=slug)
+        form = WordDetailForm(instance=word)
+        form.fields['category'].queryset = Category.objects.filter(user=request.user)
+        return render(request, 'dict/word_detail.html', {'form': form, 'word': word})
+
+
+class WordChange(LoginRequiredMixin, View):
+    def get(self, request, slug):
+        word = Word.objects.get(slug=slug)
+        form = WordDetailForm(instance=word)
+        form.fields['category'].queryset = Category.objects.filter(user=request.user)
+        return render(request, 'dict/word_change.html', {'form': form})
+
+    def post(self, request, slug):
+        word = Word.objects.get(slug=slug)
+        form = WordDetailForm(request.POST, instance=word)
+        form.fields['category'].queryset = Category.objects.filter(user=request.user)
+        if form.is_valid():
+            form.save()
+            return render(request, 'dict/word_change.html', {'form': form})
+        return render(request, 'dict/word_change.html', {'form': form})

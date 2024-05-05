@@ -1,3 +1,5 @@
+from django.urls import reverse
+
 from account.models import User
 from django.db import models
 from django.utils.text import slugify
@@ -15,17 +17,20 @@ class Word(models.Model):
 
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
-                             related_name='words'
+                             related_name='words',
                              )
 
     category = models.ManyToManyField('Category',
                                       blank=True,
-                                      related_name='words')
+                                      related_name='words',
+                                      verbose_name='категории')
 
-    eng = models.CharField(max_length=255)
+    eng = models.CharField(max_length=255,
+                           verbose_name='Английское значение')
     rus = models.CharField(max_length=255,
                            null=True,
-                           blank=True
+                           blank=True,
+                           verbose_name='перевод'
                            )
     description = models.TextField(max_length=255,
                                    null=True,
@@ -56,6 +61,14 @@ class Word(models.Model):
         if not self.id:
             self.slug = f'{self.user.custom_id}_{slugify(self.eng)}'
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        reverse_url = reverse('word_detail_url', kwargs={'slug': self.slug})
+        return reverse_url
+
+    def get_change_url(self):
+        reverse_url = reverse('word_change_url', kwargs={'slug': self.slug})
+        return reverse_url
 
     class Meta:
         """Сортировка по рейтингу. Чем ниже рейтинг, тем выше в списке"""

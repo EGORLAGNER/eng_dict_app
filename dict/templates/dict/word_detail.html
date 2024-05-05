@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <form>
+        {{ form.as_p }}
+    </form>
+    <a class="btn btn-secondary" href="{{ word.get_change_url }}" role="button">редактировать</a>
+{% endblock %}

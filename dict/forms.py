@@ -1,15 +1,8 @@
-from dict.models import Word, Category
+from dict.models import Word
 from django import forms
 
 
-class CreatePostForm(forms.ModelForm):
-    eng = forms.CharField(widget=forms.TextInput, label='английское значение')
-    rus = forms.CharField(widget=forms.TextInput, label='перевод', required=False)
-    description = forms.CharField(widget=forms.TextInput, label='описание', required=False)
-    association = forms.CharField(widget=forms.TextInput, label='ассоциация', required=False)
-    category = forms.ModelMultipleChoiceField(queryset=None)
-
-
+class CreateWordForm(forms.ModelForm):
     class Meta:
         model = Word
         fields = (
@@ -20,9 +13,41 @@ class CreatePostForm(forms.ModelForm):
             'category'
         )
 
+        widgets = {
+            'eng': forms.TextInput,
+            'rus': forms.TextInput,
+            'description': forms.TextInput,
+            'association': forms.TextInput,
+            'category': forms.CheckboxSelectMultiple,
+        }
+
+
+class WordDetailForm(forms.ModelForm):
+    class Meta:
+        model = Word
+        fields = (
+            'eng',
+            'rus',
+            'description',
+            'association',
+            'category'
+        )
+
+        widgets = {
+            'eng': forms.TextInput,
+            'rus': forms.TextInput,
+            'description': forms.TextInput,
+            'association': forms.TextInput,
+            'category': forms.CheckboxSelectMultiple,
+        }
+
 
 class SelectCategoryForm(forms.Form):
     categories = forms.ModelMultipleChoiceField(
         queryset=None,
         # widget=forms.CheckboxSelectMultiple
     )
+
+
+class SelectDeleteWordForm(forms.Form):
+    word = forms.CheckboxSelectMultiple()
