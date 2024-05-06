@@ -16,6 +16,8 @@ urlpatterns = [
     path('all_user_words/', AllUserWords.as_view(), name='all_user_words_url'),
     path('word/<str:slug>/detail/', WordDetail.as_view(), name='word_detail_url'),
     path('word/<str:slug>/change/', WordChange.as_view(), name='word_change_url'),
+    path('delete/', WordDelete.as_view(), name='word_delete_url'),
+
 
 
 ]
