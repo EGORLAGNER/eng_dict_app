@@ -1,4 +1,4 @@
-from dict.models import Word
+from dict.models import Word, Category
 from django import forms
 
 
@@ -19,6 +19,20 @@ class WordForm(forms.ModelForm):
             'description': forms.TextInput,
             'association': forms.TextInput,
             'category': forms.CheckboxSelectMultiple,
+        }
+
+
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = (
+            'name',
+            'description',
+        )
+
+        widgets = {
+            'name': forms.TextInput,
+            'description': forms.TextInput,
         }
 
 

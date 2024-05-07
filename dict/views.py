@@ -2,12 +2,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 from django.views.generic import View
-from .forms import SelectCategoryForm
+from unicodedata import category
 
 from dict.models import *
 from dict.services.json_import_export import save_backup_json
 
-from .forms import WordForm
+from .forms import WordForm, CategoryForm, SelectCategoryForm
 
 
 class StartPage(View):
@@ -72,6 +72,14 @@ class AllUserWords(LoginRequiredMixin, View):
 
 
 class WordCreate(LoginRequiredMixin, View):
+
+    def get(self, request):
+        form = WordForm()
+        form.fields['category'].queryset = Category.objects.filter(user=request.user)
+        return render(request,
+                      'dict/word/create_word.html',
+                      {'form': form})
+
     def post(self, request):
         form = WordForm(request.POST)
         form.fields['category'].queryset = Category.objects.filter(user=request.user)
@@ -93,13 +101,6 @@ class WordCreate(LoginRequiredMixin, View):
                           {'form': form})
 
             # get запрос показывает пустую форму
-
-    def get(self, request):
-        form = WordForm()
-        form.fields['category'].queryset = Category.objects.filter(user=request.user)
-        return render(request,
-                      'dict/word/create_word.html',
-                      {'form': form})
 
 
 class SelectCategory(View):
@@ -134,3 +135,52 @@ class WordChange(LoginRequiredMixin, View):
             form.save()
             return render(request, 'dict/word/change_word.html', {'form': form})
         return render(request, 'dict/word/change_word.html', {'form': form})
+
+
+class AllUserCategories(LoginRequiredMixin, View):
+    def get(self, request):
+        categories = Category.objects.filter(user=request.user)
+        return render(request, 'dict/category/all_user_categories.html', {'categories': categories})
+
+    def post(self, request):
+        categories_to_delete = request.POST.getlist('categories_to_delete')
+        obj_to_delete = Category.objects.in_bulk(categories_to_delete)
+        for key, value in obj_to_delete.items():
+            value.delete()
+        return redirect('all_user_categories_url')
+
+
+class CategoryCreate(LoginRequiredMixin, View):
+    def get(self, request):
+        form = CategoryForm()
+        return render(request, 'dict/category/create_category.html', {'form': form})
+
+    def post(self, request):
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            category = form.save(commit=False)
+            category.user = request.user
+            category.save()
+            return render(request, 'dict/category/create_category.html', {'category': category})
+        return render(request, 'dict/category/create_category.html', {'form': form})
+
+
+class CategoryChange(LoginRequiredMixin, View):
+    def get(self, request, slug):
+        category = Category.objects.get(slug=slug)
+        form = CategoryForm(instance=category)
+        words = category.words.all()
+        return render(request, 'dict/category/change_category.html', {'form': form, 'words': words})
+
+    def post(self, request, slug):
+        category = Category.objects.get(slug=slug)
+        bound_form = CategoryForm(request.POST, instance=category)
+        if bound_form.is_valid():
+            bound_form.save()
+            id_list = request.POST.getlist('words_to_delete_from_category')
+            if id_list:
+                words_to_delete = Word.objects.in_bulk(id_list)
+                for key, value in words_to_delete.items():
+                    value.delete()
+            return render(request, 'dict/category/change_category.html', {'form': bound_form})
+        return render(request, 'dict/category/change_category.html', {'form': bound_form})

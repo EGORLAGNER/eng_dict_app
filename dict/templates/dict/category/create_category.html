@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    {% if form %}
+        <p>Заполните форму:</p>
+        <form method="post">
+            {{ form.as_p }}
+            {% csrf_token %}
+            <button type="submit">добавить</button>
+        </form>
+    {% endif %}
+    {% if category %}
+        <p>Добавлена категория:</p>
+        <p>{{ category.mane }} - {{ category.description }}</p>
+    {% endif %}
+{% endblock %}
+
+
+

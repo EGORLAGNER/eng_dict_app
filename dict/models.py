@@ -80,11 +80,17 @@ class Category(models.Model):
                              on_delete=models.CASCADE,
                              related_name='categories')
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255,
+                            verbose_name='название')
 
     slug = models.SlugField(max_length=255,
                             unique=True,
                             blank=True)
+
+    description = models.TextField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   verbose_name='описание')
 
     def __str__(self):
         return self.name
@@ -94,3 +100,11 @@ class Category(models.Model):
         if not self.id:
             self.slug = f'{self.user.custom_id}_{slugify(self.name)}'
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        reverse_url = reverse('category_change_url', kwargs={'slug': self.slug})
+        return reverse_url
+
+    def get_change_url(self):
+        reverse_url = reverse('category_change_url', kwargs={'slug': self.slug})
+        return reverse_url
