@@ -7,17 +7,17 @@ from .forms import SelectCategoryForm
 from dict.models import *
 from dict.services.json_import_export import save_backup_json
 
-from .forms import CreateWordForm, WordDetailForm
+from .forms import WordForm
 
 
-class MainPage(View):
+class StartPage(View):
     """Заглавная страница приложения"""
 
     def get(self, request):
         text = 'Добро пожаловать в приложение для изучения английских слов'
         current_user = request.user
         context = {'context': text, 'user': current_user}
-        return render(request, 'dict/main_page.html', context)
+        return render(request, 'dict/start_page.html', context)
 
 
 def hello_user(request):
@@ -39,7 +39,7 @@ def save_json(request):
 
 class WordCreate(LoginRequiredMixin, View):
     def post(self, request):
-        form = CreateWordForm(request.POST)
+        form = WordForm(request.POST)
         form.fields['category'].queryset = Category.objects.filter(user=request.user)
         if form.is_valid():
             # Создать модель на основе формы, но не сохранять в базу.
@@ -50,21 +50,21 @@ class WordCreate(LoginRequiredMixin, View):
 
             # валидная форма, показывает сохраненные новые слова
             return render(request,
-                          'dict/create_word.html',
+                          'dict/word/create_word.html',
                           {'word': word})
         # если форма не валидна, то показывает заполненную форму и ошибку
         else:
             return render(request,
-                          'dict/create_word.html',
+                          'dict/word/create_word.html',
                           {'form': form})
 
             # get запрос показывает пустую форму
 
     def get(self, request):
-        form = CreateWordForm()
+        form = WordForm()
         form.fields['category'].queryset = Category.objects.filter(user=request.user)
         return render(request,
-                      'dict/create_word.html',
+                      'dict/word/create_word.html',
                       {'form': form})
 
 
@@ -114,7 +114,7 @@ class AllUserWords(LoginRequiredMixin, View):
         page_number = request.GET.get("page")
         page_obj = paginator.get_page(page_number)
 
-        return render(request, 'dict/all_user_words_pagination.html', {'words': words, 'page_obj': page_obj})
+        return render(request, 'dict/word/all_user_words.html', {'words': words, 'page_obj': page_obj})
 
     def post(self, request):
         words_id_to_delete = request.POST.getlist('words_to_delete')
@@ -124,26 +124,18 @@ class AllUserWords(LoginRequiredMixin, View):
         return redirect('all_user_words_url')
 
 
-class WordDetail(LoginRequiredMixin, View):
-    def get(self, request, slug):
-        word = Word.objects.get(slug=slug)
-        form = WordDetailForm(instance=word)
-        form.fields['category'].queryset = Category.objects.filter(user=request.user)
-        return render(request, 'dict/word_detail.html', {'form': form, 'word': word})
-
-
 class WordChange(LoginRequiredMixin, View):
     def get(self, request, slug):
         word = Word.objects.get(slug=slug)
-        form = WordDetailForm(instance=word)
+        form = WordForm(instance=word)
         form.fields['category'].queryset = Category.objects.filter(user=request.user)
-        return render(request, 'dict/word_change.html', {'form': form})
+        return render(request, 'dict/word/change_word.html', {'form': form})
 
     def post(self, request, slug):
         word = Word.objects.get(slug=slug)
-        form = WordDetailForm(request.POST, instance=word)
+        form = WordForm(request.POST, instance=word)
         form.fields['category'].queryset = Category.objects.filter(user=request.user)
         if form.is_valid():
             form.save()
-            return render(request, 'dict/word_change.html', {'form': form})
-        return render(request, 'dict/word_change.html', {'form': form})
+            return render(request, 'dict/word/change_word.html', {'form': form})
+        return render(request, 'dict/word/change_word.html', {'form': form})
