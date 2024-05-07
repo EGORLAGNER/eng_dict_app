@@ -50,6 +50,6 @@ class SelectCategoryForm(forms.Form):
 
 
 class SelectDeleteWordForm(forms.Form):
-    word = forms.ModelMultipleChoiceField(queryset=None, widget=forms.CheckboxSelectMultiple)
+    word = forms.ModelMultipleChoiceField(queryset=None, widget=forms.CheckboxSelectMultiple, label=None)
 
 

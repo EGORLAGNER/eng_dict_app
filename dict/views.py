@@ -6,7 +6,7 @@ from .forms import SelectCategoryForm
 from dict.models import *
 from dict.services.json_import_export import save_backup_json
 
-from .forms import CreateWordForm, WordDetailForm, SelectDeleteWordForm
+from .forms import CreateWordForm, WordDetailForm
 
 
 class MainPage(View):
@@ -174,8 +174,12 @@ class Profile(LoginRequiredMixin, View):
 
 
 class AllUserWords(LoginRequiredMixin, View):
+    """
+    В get отображает список всех слов пользователя с чекбоксами.
+    В post удаляет отмеченные слова.
+    """
+
     def get(self, request):
-        """Показывает все слова юзера"""
         user = request.user
         search_query = request.GET.get('search', '')
         if search_query:
@@ -183,6 +187,13 @@ class AllUserWords(LoginRequiredMixin, View):
         else:
             word = user.words.prefetch_related('category').all()
         return render(request, 'dict/all_user_words.html', {'words': word})
+
+    def post(self, request):
+        words_id_to_delete = request.POST.getlist('words_to_delete')
+        obj_to_delete = Word.objects.in_bulk(words_id_to_delete)
+        for key, value in obj_to_delete.items():
+            value.delete()
+        return redirect('all_user_words_url')
 
 
 class WordDetail(LoginRequiredMixin, View):
@@ -208,23 +219,3 @@ class WordChange(LoginRequiredMixin, View):
             form.save()
             return render(request, 'dict/word_change.html', {'form': form})
         return render(request, 'dict/word_change.html', {'form': form})
-
-
-class WordDelete(LoginRequiredMixin, View):
-    def get(self, request):
-        """Показывает все слова юзера"""
-        user = request.user
-        form = SelectDeleteWordForm()
-        form.fields['word'].queryset = user.words
-
-        return render(request, 'dict/delete_word.html', {'form': form})
-
-    def post(self, request):
-        user = request.user
-        bound_form = SelectDeleteWordForm(request.POST)
-        bound_form.fields['word'].queryset = user.words
-        if bound_form.is_valid():
-            words_for_delete = bound_form.cleaned_data['word']
-            words_for_delete.delete()
-
-        return render(request, 'dict/delete_word.html', {'form': bound_form})

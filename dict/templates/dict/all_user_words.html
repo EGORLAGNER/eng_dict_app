@@ -5,13 +5,19 @@
         <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search">
         <button class="btn btn-outline-success" type="submit">Search</button>
     </form>
-    <h5>Список всех слов:</h5>
+    <h3>Список всех слов:</h3>
+    <form method="post">
+    {% csrf_token %}
     {% for word in words %}
-        <p><a href="{{ word.get_absolute_url }}">{{ word.rating }} {{ word.eng }} - {{ word.rus }}</a>
+        <p>
+        <input value="{{ word.id }}" name="words_to_delete" type="checkbox"/>
+            <a href="{{ word.get_absolute_url }}">[{{ word.rating }}] {{ word.eng }} - {{ word.rus }}</a>
             ({{ word.description }}) |
             {% for cat in word.category.all %}
                 {{ cat }} |
             {% endfor %}
         </p>
     {% endfor %}
+    <button type="submit">удалить слова</button>
+    </form>
 {% endblock %}
