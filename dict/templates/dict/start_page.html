@@ -1,8 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h4>{{ context }}</h4>
-    <h4>{{ user}}</h4>
+    <h4><b>{{ user.username|upper }}, {{ context }}</b></h4>
 {% endblock %}
 
 

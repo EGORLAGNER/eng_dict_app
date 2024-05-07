@@ -14,27 +14,61 @@ class StartPage(View):
     """Заглавная страница приложения"""
 
     def get(self, request):
-        text = 'Добро пожаловать в приложение для изучения английских слов'
+        text = 'добро пожаловать в приложение для изучения английских слов'
         current_user = request.user
         context = {'context': text, 'user': current_user}
         return render(request, 'dict/start_page.html', context)
 
 
-def hello_user(request):
-    user = request.user
-    return render(request, 'dict/hello_user.html', {'user': user})
+class Profile(LoginRequiredMixin, View):
+    def get(self, request):
+        if request.method == 'GET':
+            user_name = request.user.username
+            return render(request, 'dict/profile.html', context={'user_name': user_name})
+
+        if request.method == 'POST':
+            pass
 
 
-def del_setting(request):
-    """Удаление настроек изучения."""
-    response = redirect('main_page_url')
-    response.set_cookie('type_learn', 'None')
-    return response
+class AllUserWords(LoginRequiredMixin, View):
+    """
+    В get отображает список всех слов пользователя с чекбоксами.
+    В post удаляет отмеченные слова.
+    """
+
+    def get(self, request):
+        user = request.user
+        search_query = request.GET.get('search', '')
+        if search_query:
+            words = user.words.filter(eng__icontains=search_query)
+        else:
+            words = user.words.prefetch_related('category').all()
+
+        paginator = Paginator(words, 15)
+
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        return render(request, 'dict/word/all_user_words.html', {'words': words, 'page_obj': page_obj})
+
+    def post(self, request):
+        words_id_to_delete = request.POST.getlist('words_to_delete')
+        obj_to_delete = Word.objects.in_bulk(words_id_to_delete)
+        for key, value in obj_to_delete.items():
+            value.delete()
+        return redirect('all_user_words_url')
 
 
-def save_json(request):
-    save_backup_json(True)
-    return render(request, 'dict/json_save_confirm.html')
+# def del_setting(request):
+#     """Удаление настроек изучения."""
+#     response = redirect('main_page_url')
+#     response.set_cookie('type_learn', 'None')
+#     return response
+#
+#
+# def save_json(request):
+#     save_backup_json(True)
+#     return render(request, 'dict/json_save_confirm.html')
 
 
 class WordCreate(LoginRequiredMixin, View):
@@ -83,45 +117,6 @@ class SelectCategory(View):
             request.session['categories'] = name_category
 
         return render(request, 'dict/select_category.html')
-
-
-class Profile(LoginRequiredMixin, View):
-    def get(self, request):
-        if request.method == 'GET':
-            user_name = request.user.username
-            return render(request, 'dict/profile.html', context={'user_name': user_name})
-
-        if request.method == 'POST':
-            pass
-
-
-class AllUserWords(LoginRequiredMixin, View):
-    """
-    В get отображает список всех слов пользователя с чекбоксами.
-    В post удаляет отмеченные слова.
-    """
-
-    def get(self, request):
-        user = request.user
-        search_query = request.GET.get('search', '')
-        if search_query:
-            words = user.words.filter(eng__icontains=search_query)
-        else:
-            words = user.words.prefetch_related('category').all()
-
-        paginator = Paginator(words, 15)
-
-        page_number = request.GET.get("page")
-        page_obj = paginator.get_page(page_number)
-
-        return render(request, 'dict/word/all_user_words.html', {'words': words, 'page_obj': page_obj})
-
-    def post(self, request):
-        words_id_to_delete = request.POST.getlist('words_to_delete')
-        obj_to_delete = Word.objects.in_bulk(words_id_to_delete)
-        for key, value in obj_to_delete.items():
-            value.delete()
-        return redirect('all_user_words_url')
 
 
 class WordChange(LoginRequiredMixin, View):
