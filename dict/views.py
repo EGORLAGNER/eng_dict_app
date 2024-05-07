@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 from django.views.generic import View
 from .forms import SelectCategoryForm
@@ -84,85 +85,6 @@ class SelectCategory(View):
         return render(request, 'dict/select_category.html')
 
 
-# class LearnWords(View):
-#     """Изучение слов"""
-#
-#     def get(self, request):
-#         user = request.user
-#
-#         return render(request, 'dict/learn_words.html', context)
-#
-#     def post(self, request):
-#         answer_user = request.POST.get('answer')
-#         correct_answer = request.session.get('correct_answer')
-#         question = request.session.get('question')
-#
-#         if answer_user == correct_answer:
-#             change_rating(correct_answer, True)
-#
-#             return redirect('learn_word_url')
-#         else:
-#             change_rating(correct_answer)
-#             context = {
-#                 'correct_answer': correct_answer,
-#                 'question': question,
-#             }
-#             return render(request, 'dict/answer.html', context=context)
-
-
-# class LearnWords(View):
-#     """Изучение слов"""
-#
-#     def get(self, request):
-#         user = request.user
-#         setting = request.COOKIES.get('type_learn')
-#         options = {
-#             'all': get_all_words,
-#             'it': get_it_words,
-#             'popular': get_popular_words,
-#         }
-#         user_setting_learn = options.get(setting)
-#
-#         question, correct_answer, all_answers = learn_words(user, user_setting_learn)
-#         request.session['question'] = question
-#         request.session['correct_answer'] = correct_answer
-#
-#         context = {
-#             'question': question,
-#             'correct_answer': correct_answer,
-#             'all_answers': all_answers,
-#         }
-#
-#         # return render(request, 'dict/learn_word.html', context)
-#         return render(request, 'dict/learn_words.html', context)
-#
-#     def post(self, request):
-#         answer_user = request.POST.get('answer')
-#         correct_answer = request.session.get('correct_answer')
-#         question = request.session.get('question')
-#
-#         if answer_user == correct_answer:
-#             change_rating(correct_answer, True)
-#
-#             return redirect('learn_word_url')
-#         else:
-#             change_rating(correct_answer)
-#             context = {
-#                 'correct_answer': correct_answer,
-#                 'question': question,
-#             }
-#             return render(request, 'dict/answer.html', context=context)
-
-# @login_required
-# def profile(request):
-#     if request.method == 'GET':
-#         user_name = request.user.username
-#         return render(request, 'dict/profile.html', context={'user_name': user_name})
-#
-#     if request.method == 'POST':
-#         pass
-
-
 class Profile(LoginRequiredMixin, View):
     def get(self, request):
         if request.method == 'GET':
@@ -183,10 +105,16 @@ class AllUserWords(LoginRequiredMixin, View):
         user = request.user
         search_query = request.GET.get('search', '')
         if search_query:
-            word = user.words.filter(eng__icontains=search_query)
+            words = user.words.filter(eng__icontains=search_query)
         else:
-            word = user.words.prefetch_related('category').all()
-        return render(request, 'dict/all_user_words.html', {'words': word})
+            words = user.words.prefetch_related('category').all()
+
+        paginator = Paginator(words, 15)
+
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        return render(request, 'dict/all_user_words_pagination.html', {'words': words, 'page_obj': page_obj})
 
     def post(self, request):
         words_id_to_delete = request.POST.getlist('words_to_delete')
