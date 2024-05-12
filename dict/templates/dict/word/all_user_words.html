@@ -10,18 +10,22 @@
     <div class="user_words">
         <h3>Список всех слов:</h3>
         <form method="post">
-        {% csrf_token %}
-        {% for word in page_obj %}
-            <p>
-            <input value="{{ word.id }}" name="words_to_delete" type="checkbox"/>
-                <a href="{{ word.get_change_url }}">[{{ word.rating }}] {{ word.eng }} - {{ word.rus }}</a>
-                ({{ word.description }}) |
-                {% for cat in word.category.all %}
-                    {{ cat }} |
-                {% endfor %}
-            </p>
-        {% endfor %}
-        <button type="submit">удалить</button>
+            {% csrf_token %}
+            {% for word in page_obj %}
+                <p>
+                    <input value="{{ word.id }}" name="words_to_delete" type="checkbox"/>
+                    <a href="{{ word.get_change_url }}">[{{ word.rating }}] {{ word.eng }} - {{ word.rus }}</a>
+                    {% if words.description %}
+                        ({{ word.description }})
+                    {% endif %}
+                    {% for cat in word.category.all %}
+                        {% if cat %}
+                            <a href="{{ cat.get_absolute_url }}">[{{ cat|upper }}]</a>
+                        {% endif %}
+                    {% endfor %}
+                </p>
+            {% endfor %}
+            <button type="submit">удалить</button>
         </form>
     </div>
 
