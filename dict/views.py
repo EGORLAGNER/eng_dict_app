@@ -2,10 +2,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 from django.views.generic import View
-from unicodedata import category
 
 from dict.models import *
-from dict.services.json_import_export import save_backup_json
 
 from .forms import WordForm, CategoryForm, SelectCategoryForm
 
@@ -177,9 +175,9 @@ class CategoryChange(LoginRequiredMixin, View):
         bound_form = CategoryForm(request.POST, instance=category)
         if bound_form.is_valid():
             bound_form.save()
-            id_list = request.POST.getlist('words_to_delete_from_category')
-            if id_list:
-                words_to_delete = Word.objects.in_bulk(id_list)
+            id_list_words = request.POST.getlist('words_to_delete_from_category')
+            if id_list_words:
+                words_to_delete = Word.objects.in_bulk(id_list_words)
                 for key, value in words_to_delete.items():
                     value.delete()
             return render(request, 'dict/category/change_category.html', {'form': bound_form})
