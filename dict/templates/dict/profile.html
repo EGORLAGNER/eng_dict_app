@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h4>{{ user_name }}</h4>
-    <p>слова:</p>
+    <h3>{{ user_name|upper }}</h3>
+    <h3><p>слова:</p></h3>
     <p><a href="{% url 'create_word_url' %}">добавить новое слово</a></p>
     <p><a href="{% url 'all_user_words_url' %}">все слова</a></p>
-    <p>категории:</p>
+    <h3><p>категории:</p></h3>
     <p><a href="{% url 'create_category_url' %}">добавить новую категорию</a></p>
     <p><a href="{% url 'all_user_categories_url' %}">все категории</a></p>
 {% endblock %}
