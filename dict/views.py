@@ -38,7 +38,7 @@ class AllUserWords(LoginRequiredMixin, View):
         user = request.user
         search_query = request.GET.get('search', '')
         if search_query:
-            words = user.words.filter(eng__icontains=search_query)
+            words = user.words.filter(eng__icontains=search_query).prefetch_related('category')
         else:
             words = user.words.prefetch_related('category').all()
 
@@ -46,27 +46,19 @@ class AllUserWords(LoginRequiredMixin, View):
 
         page_number = request.GET.get("page")
         page_obj = paginator.get_page(page_number)
-
         return render(request, 'dict/word/all_user_words.html', {'words': words, 'page_obj': page_obj})
 
     def post(self, request):
-        words_id_to_delete = request.POST.getlist('words_to_delete')
-        obj_to_delete = Word.objects.in_bulk(words_id_to_delete)
-        for key, value in obj_to_delete.items():
-            value.delete()
+        selected_words = request.POST.getlist('selected_words')
+        words = Word.objects.in_bulk(selected_words)
+        print()
+        if request.POST.get('delete'):
+            for word in words.values():
+                word.delete()
+        if request.POST.get('set_category'):
+            print('присвоить категорию')
+
         return redirect('all_user_words_url')
-
-
-# def del_setting(request):
-#     """Удаление настроек изучения."""
-#     response = redirect('main_page_url')
-#     response.set_cookie('type_learn', 'None')
-#     return response
-#
-#
-# def save_json(request):
-#     save_backup_json(True)
-#     return render(request, 'dict/json_save_confirm.html')
 
 
 class WordCreate(LoginRequiredMixin, View):
@@ -182,3 +174,14 @@ class CategoryChange(LoginRequiredMixin, View):
                     value.delete()
             return render(request, 'dict/category/change_category.html', {'form': bound_form})
         return render(request, 'dict/category/change_category.html', {'form': bound_form})
+
+# def del_setting(request):
+#     """Удаление настроек изучения."""
+#     response = redirect('main_page_url')
+#     response.set_cookie('type_learn', 'None')
+#     return response
+#
+#
+# def save_json(request):
+#     save_backup_json(True)
+#     return render(request, 'dict/json_save_confirm.html')
