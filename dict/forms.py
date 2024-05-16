@@ -39,7 +39,7 @@ class CategoryForm(forms.ModelForm):
 class SelectCategoryForm(forms.Form):
     categories = forms.ModelMultipleChoiceField(
         queryset=None,
-        # widget=forms.CheckboxSelectMultiple
+        widget=forms.CheckboxSelectMultiple
     )
 
 

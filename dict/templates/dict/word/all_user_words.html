@@ -13,7 +13,7 @@
             {% csrf_token %}
             {% for word in page_obj %}
                 <p>
-                    <input value="{{ word.id }}" name="words_to_delete" type="checkbox"/>
+                    <input value="{{ word.slug }}" name="selected_words" type="checkbox"/>
                     <a href="{{ word.get_change_url }}">[{{ word.rating }}] {{ word.eng }} - {{ word.rus }}</a>
                     {% if words.description %}
                         ({{ word.description }})
@@ -25,7 +25,8 @@
                     {% endfor %}
                 </p>
             {% endfor %}
-            <button type="submit">удалить</button>
+            <button type="submit" name="flag_delete_word" value="True">удалить слова</button>
+            <button type="submit" name="flag_set_category_to_word" value="True">назначить категорию</button>
         </form>
     </div>
 

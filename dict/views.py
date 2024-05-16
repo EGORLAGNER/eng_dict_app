@@ -50,15 +50,39 @@ class AllUserWords(LoginRequiredMixin, View):
 
     def post(self, request):
         selected_words = request.POST.getlist('selected_words')
-        words = Word.objects.in_bulk(selected_words)
-        print()
-        if request.POST.get('delete'):
+        if request.POST.get('flag_delete_word'):
+            words = Word.objects.in_bulk(selected_words)
             for word in words.values():
                 word.delete()
-        if request.POST.get('set_category'):
-            print('присвоить категорию')
+        if request.POST.get('flag_set_category_to_word'):
+            request.session['flag_set_category_to_word'] = True
+            request.session['selected_words'] = selected_words
+            return redirect('select_category_url')
 
         return redirect('all_user_words_url')
+
+
+class AddCategoriesToWords(LoginRequiredMixin, View):
+    def get(self, request):
+        selected_categories = request.session.get('selected_categories')
+        selected_words = request.session.get('selected_words')
+        changed_words = []
+        print(selected_categories)
+        print(selected_words)
+        for slug_category in selected_categories:
+            obj_category = Category.objects.get(slug=slug_category)
+            for word_slug in selected_words:
+                print(word_slug)
+                obj_word = Word.objects.get(slug=word_slug)
+                obj_word.category.add(obj_category)
+                obj_word.save()
+                if obj_word not in changed_words:
+                    changed_words.append(obj_word)
+
+        del request.session['selected_categories']
+        del request.session['selected_words']
+        del request.session['flag_set_category_to_word']
+        return render(request, 'dict/category/add_categories_to_words_confirm.html', {'words': changed_words})
 
 
 class WordCreate(LoginRequiredMixin, View):
@@ -93,7 +117,7 @@ class WordCreate(LoginRequiredMixin, View):
             # get запрос показывает пустую форму
 
 
-class SelectCategory(View):
+class SelectCategory(LoginRequiredMixin, View):
     def get(self, request):
         form = SelectCategoryForm()
         form.fields['categories'].queryset = Category.objects.filter(user=request.user)
@@ -104,10 +128,12 @@ class SelectCategory(View):
         form.fields['categories'].queryset = Category.objects.filter(user=request.user)  # Динамически задаем queryset
         if form.is_valid():
             categories_obj = form.cleaned_data['categories']
-            name_category = [obj.name for obj in categories_obj]
-            request.session['categories'] = name_category
-
-        return render(request, 'dict/select_category.html')
+            slug_category = [obj.slug for obj in categories_obj]
+            request.session['selected_categories'] = slug_category
+        selected_categories = request.session.get('selected_categories')
+        if request.session.get('flag_set_category_to_word'):
+            return redirect('add_categories_to_words_url')
+        return render(request, 'dict/select_category.html', {'categories': selected_categories})
 
 
 class WordChange(LoginRequiredMixin, View):

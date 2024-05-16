@@ -44,15 +44,30 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <div class="question">
-        <p>Выберите категорию или категории для изучения слов:</p>
-    </div>
-    <form method="post" action="{% url 'select_category_url' %}">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Выбрать</button>
+    {% if categories %}
+        <div>
 
-    </form>
+            <h3>выбранные категории:</h3>
+            {% for category in categories %}
+                <p>{{ category }}</p>
+
+            {% endfor %}
+
+
+        </div>
+
+
+
+    {% else %}
+        <div class="question">
+            <p>Выберите категорию или категории для изучения слов:</p>
+        </div>
+        <form method="post" action="{% url 'select_category_url' %}">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Выбрать</button>
+        </form>
+    {% endif %}
 {% endblock %}
 
 
