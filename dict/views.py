@@ -148,6 +148,10 @@ class WordChange(LoginRequiredMixin, View):
         form = WordForm(request.POST, instance=word)
         form.fields['category'].queryset = Category.objects.filter(user=request.user)
         if form.is_valid():
+            form.save(commit=False)
+            # актуализация поля slug после изменения Word
+            updated_word_slug = form.instance.generate_slug()
+            form.instance.slug = updated_word_slug
             form.save()
             return render(request, 'dict/word/change_word.html', {'form': form})
         return render(request, 'dict/word/change_word.html', {'form': form})
@@ -200,14 +204,3 @@ class CategoryChange(LoginRequiredMixin, View):
                     value.delete()
             return render(request, 'dict/category/change_category.html', {'form': bound_form})
         return render(request, 'dict/category/change_category.html', {'form': bound_form})
-
-# def del_setting(request):
-#     """Удаление настроек изучения."""
-#     response = redirect('main_page_url')
-#     response.set_cookie('type_learn', 'None')
-#     return response
-#
-#
-# def save_json(request):
-#     save_backup_json(True)
-#     return render(request, 'dict/json_save_confirm.html')
