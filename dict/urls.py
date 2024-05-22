@@ -16,10 +16,4 @@ urlpatterns = [
 
     path('select_category/', SelectCategory.as_view(), name='select_category_url'),
     path('add_categories_to_words/', AddCategoriesToWords.as_view(), name='add_categories_to_words_url'),
-    # path('json_backup/', save_json, name='save_json_url'),
-    # path('del_setting/', del_setting, name='del_setting_url'),
-
-    # path('setting_learn/', SettingLearn.as_view(), name='setting_learn_url'),
-    # path('learn_word/', LearnWords.as_view(), name='learn_word_url'),
-
 ]
