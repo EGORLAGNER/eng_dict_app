@@ -3,7 +3,6 @@ from django.urls import reverse
 from account.models import User
 from django.db import models
 from django.utils.text import slugify
-from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 def gen_slug(string):
@@ -25,29 +24,29 @@ class Word(models.Model):
                                       related_name='words',
                                       verbose_name='категории')
 
+    statistics = models.OneToOneField('WordStatistics',
+                                      on_delete=models.CASCADE)
+
     eng = models.CharField(max_length=255,
                            verbose_name='Английское значение')
+
     rus = models.CharField(max_length=255,
                            null=True,
                            blank=True,
-                           verbose_name='перевод'
-                           )
+                           verbose_name='перевод')
+
     description = models.TextField(max_length=255,
                                    null=True,
-                                   blank=True
-                                   )
+                                   blank=True)
+
     association = models.TextField(max_length=255,
                                    null=True,
-                                   blank=True
-                                   )
-    rating = models.SmallIntegerField(default=0,
-                                      validators=(MinValueValidator, MaxValueValidator,)
-                                      )
+                                   blank=True)
+
     is_learned = models.BooleanField(default=False)
     slug = models.SlugField(max_length=150,
                             unique=True,
-                            blank=True
-                            )
+                            blank=True)
 
     def __str__(self):
         """Определяет то, как будет отображаться экземпляр в админ панели и консоли"""
@@ -59,8 +58,11 @@ class Word(models.Model):
     def save(self, *args, **kwargs):
         """Переопределяет метод save"""
         if not self.id:
-            self.slug = f'{self.user.custom_id}_{slugify(self.eng)}'
+            self.slug = self.generate_slug()
         super().save(*args, **kwargs)
+
+    def generate_slug(self):
+        return f'{self.user.custom_id}_{slugify(self.eng)}'
 
     def get_absolute_url(self):
         reverse_url = reverse('word_detail_url', kwargs={'slug': self.slug})
@@ -78,6 +80,7 @@ class Word(models.Model):
 class Category(models.Model):
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
+                             null=True,
                              related_name='categories')
 
     name = models.CharField(max_length=255,
@@ -108,3 +111,20 @@ class Category(models.Model):
     def get_change_url(self):
         reverse_url = reverse('category_change_url', kwargs={'slug': self.slug})
         return reverse_url
+
+
+class WordStatistics(models.Model):
+    # поле заполняется при сохранении Word в базу
+    slug = models.SlugField(max_length=150,
+                            blank=True,
+                            null=True)
+
+    learning_counter = models.PositiveIntegerField(default=1)
+    correct_answer_counter = models.PositiveIntegerField(default=0)
+    incorrect_answer_counter = models.PositiveIntegerField(default=0)
+    date_added = models.DateField(auto_now_add=True, null=True)
+    date_last_learn = models.DateField(auto_now=True, null=True)
+
+    def __str__(self):
+        return (
+            f'slug: {self.slug} | {self.learning_counter}/{self.correct_answer_counter}/{self.incorrect_answer_counter}')
