@@ -3,7 +3,8 @@ from dict.models import Word, WordStatistics
 from account.models import User
 from django.db.utils import IntegrityError
 
-USER = User.objects.get(custom_id=1716285847555)
+ADMIN_ACC_ID = 1716285847555
+TEST_ACC_ID = 1716376017232
 
 PATH_EXCEL_FILE = 'D:\\MAIN\\MY\\ENG\\my_dict.xlsx'
 
@@ -48,8 +49,11 @@ class DataImportHandler:
         # data_dict теперь содержит данные в формате словаря
         return list_with_dicts
 
-    def _add_words_in_db(self, list_with_dict):
-        """Добавляет в базу данных части речи (Word)"""
+    def _get_obj_user(self, custom_user_id):
+        return User.objects.get(custom_id=custom_user_id)
+
+    def _add_words_in_db(self, list_with_dict, custom_user_id):
+        """Добавляет слова конкретному пользователю."""
         count_add_words = 0
         for dictionary in list_with_dict:
             eng = dictionary['eng']
@@ -61,7 +65,7 @@ class DataImportHandler:
 
             try:
                 if self._check_value_is_string(eng) and rus is not None:
-                    user = USER
+                    user = self._get_obj_user(custom_user_id)
                     obj_statistics = WordStatistics.objects.create(slug=str(user.custom_id) + '_' + eng)
                     user.words.create(eng=eng, rus=rus, statistics=obj_statistics)
 
@@ -82,7 +86,7 @@ class DataImportHandler:
         print(f'Добавлено слов в базу: {count_add_words}')
         print(f'Всего слов в базе: {Word.objects.all().count()}')
 
-    def start_process_add_words_in_db(self, flag=False):
+    def add_words_for_user(self, custom_user_id):
         """Запускает процесс добавления слов (Word) в базу данных"""
 
         data_set_with_words = self._get_data_from_excel(
@@ -90,22 +94,22 @@ class DataImportHandler:
             2000,
             'words',
         )
-        if flag:
-            self._add_words_in_db(data_set_with_words)
-            print('Импорт СЛОВ в базу завершен!')
+
+        self._add_words_in_db(data_set_with_words, custom_user_id)
+        print('Импорт СЛОВ в базу завершен!')
         return data_set_with_words
 
-    def delete_all_words_in_db(self, flag=False):
+    def delete_all_words(self):
         """Удаляет все слова в базе"""
-        if flag:
-            print(f'До удаления в базе данных было: {Word.objects.all().count()} слов')
-            Word.objects.all().delete()
 
-            print('Удаление завершено')
-            print(f'Сейчас в базе данных: {Word.objects.all().count()} слов')
+        print(f'До удаления в базе данных было: {Word.objects.all().count()} слов')
+        Word.objects.all().delete()
+
+        print('Удаление завершено')
+        print(f'Сейчас в базе данных: {Word.objects.all().count()} слов')
 
 
 if __name__ == '__main__':
     handler = DataImportHandler()
-    handler.delete_all_words_in_db()
-    handler.start_process_add_words_in_db()  # изменить аргумент на True для включения функции;
+    handler.add_words_for_user(TEST_ACC_ID)
+    # handler.delete_all_words()
