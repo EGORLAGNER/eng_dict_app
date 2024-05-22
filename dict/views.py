@@ -67,12 +67,9 @@ class AddCategoriesToWords(LoginRequiredMixin, View):
         selected_categories = request.session.get('selected_categories')
         selected_words = request.session.get('selected_words')
         changed_words = []
-        print(selected_categories)
-        print(selected_words)
         for slug_category in selected_categories:
             obj_category = Category.objects.get(slug=slug_category)
             for word_slug in selected_words:
-                print(word_slug)
                 obj_word = Word.objects.get(slug=word_slug)
                 obj_word.category.add(obj_category)
                 obj_word.save()
@@ -102,6 +99,8 @@ class WordCreate(LoginRequiredMixin, View):
             # Позволяет выполнить дополнительные действия с объектом перед сохранением его в базе данных
             word = form.save(commit=False)
             word.user = request.user
+            obj_statistics = WordStatistics.objects.create(slug=word.generate_slug())
+            word.statistics = obj_statistics
             word.save()
 
             # валидная форма, показывает сохраненные новые слова
@@ -149,9 +148,16 @@ class WordChange(LoginRequiredMixin, View):
         form.fields['category'].queryset = Category.objects.filter(user=request.user)
         if form.is_valid():
             form.save(commit=False)
-            # актуализация поля slug после изменения Word
+
+            # актуализация поля slug в Word после изменения Word
             updated_word_slug = form.instance.generate_slug()
             form.instance.slug = updated_word_slug
+
+            # актуализация поля slug в WordStatistics после изменения Word
+            obj_statistics = form.instance.statistics
+            obj_statistics.slug = updated_word_slug
+            obj_statistics.save()
+
             form.save()
             return render(request, 'dict/word/change_word.html', {'form': form})
         return render(request, 'dict/word/change_word.html', {'form': form})
