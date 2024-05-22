@@ -1,12 +1,20 @@
 import pandas as pd
-from dict.models import Word, WordStatistics
+from dict.models import Word, WordStatistics, Category
 from account.models import User
 from django.db.utils import IntegrityError
+
+PATH_EXCEL_FILE = 'D:\\MAIN\\MY\\ENG\\my_dict.xlsx'
 
 ADMIN_ACC_ID = 1716285847555
 TEST_ACC_ID = 1716376017232
 
-PATH_EXCEL_FILE = 'D:\\MAIN\\MY\\ENG\\my_dict.xlsx'
+NAME_CATEGORIES = [
+    'django',
+    'pycharm',
+    'it',
+    'qa',
+    'home'
+]
 
 
 class DataImportHandler:
@@ -108,8 +116,17 @@ class DataImportHandler:
         print('Удаление завершено')
         print(f'Сейчас в базе данных: {Word.objects.all().count()} слов')
 
+    def add_categories_for_user(self, custom_user_id):
+        user = self._get_obj_user(custom_user_id)
+        print(f'Всего категорий в базе: {Category.objects.all().count()}')
+        for category in NAME_CATEGORIES:
+            user.categories.create(name=category)
+        print('Импорт КАТЕГОРИЙ в базу завершен!')
+        print(f'Всего категорий в базе: {Category.objects.all().count()}')
+
 
 if __name__ == '__main__':
     handler = DataImportHandler()
-    handler.add_words_for_user(TEST_ACC_ID)
+    # handler.add_words_for_user(TEST_ACC_ID)
     # handler.delete_all_words()
+    handler.add_categories_for_user(TEST_ACC_ID)
