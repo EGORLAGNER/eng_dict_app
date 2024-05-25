@@ -69,8 +69,8 @@ class AddCategoriesToWords(LoginRequiredMixin, View):
         changed_words = []
         for slug_category in selected_categories:
             obj_category = Category.objects.get(slug=slug_category)
-            for word_slug in selected_words:
-                obj_word = Word.objects.get(slug=word_slug)
+            for word_id in selected_words:
+                obj_word = Word.objects.get(id=word_id)
                 obj_word.category.add(obj_category)
                 obj_word.save()
                 if obj_word not in changed_words:
