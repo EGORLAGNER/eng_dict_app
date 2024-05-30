@@ -7,6 +7,9 @@ from dict.models import *
 
 from .forms import WordForm, CategoryForm, SelectCategoryForm
 
+from dict.services import services
+import random
+
 
 class StartPage(View):
     """Заглавная страница приложения"""
@@ -22,6 +25,15 @@ class Profile(LoginRequiredMixin, View):
     def get(self, request):
         if request.method == 'GET':
             user_name = request.user.username
+
+            # проверка наличия списка не корректных ответов
+            incorrect_answers = request.session.get('incorrect_answers', False)
+
+            # если списка нет, то сгенерировать сохранить
+            if not incorrect_answers:
+                incorrect_answers = services.generate_incorrect_answers()
+                request.session['incorrect_answers'] = incorrect_answers
+
             return render(request, 'dict/profile.html', context={'user_name': user_name})
 
         if request.method == 'POST':
@@ -54,6 +66,7 @@ class AllUserWords(LoginRequiredMixin, View):
             words = Word.objects.in_bulk(selected_words)
             for word in words.values():
                 word.delete()
+
         if request.POST.get('flag_set_category_to_word'):
             request.session['flag_set_category_to_word'] = True
             request.session['selected_words'] = selected_words
@@ -128,10 +141,18 @@ class SelectCategory(LoginRequiredMixin, View):
         if form.is_valid():
             categories_obj = form.cleaned_data['categories']
             slug_category = [obj.slug for obj in categories_obj]
+            # сохранение выбранных категорий в сессии
             request.session['selected_categories'] = slug_category
         selected_categories = request.session.get('selected_categories')
+
+        # перенаправление на страницу добавления категорий словам
         if request.session.get('flag_set_category_to_word'):
             return redirect('add_categories_to_words_url')
+
+        # перенаправление на страницу изучения слов
+        if services.get_flag(request, 'learn_words'):
+            return redirect('learn_words_url')
+
         return render(request, 'dict/select_category.html', {'categories': selected_categories})
 
 
@@ -210,3 +231,92 @@ class CategoryChange(LoginRequiredMixin, View):
                     value.delete()
             return render(request, 'dict/category/change_category.html', {'form': bound_form})
         return render(request, 'dict/category/change_category.html', {'form': bound_form})
+
+
+class LearWords(LoginRequiredMixin, View):
+    def get(self, request):
+        # флаг указывает намерения учить слова
+        # необходим для class SelectedCategory
+        services.set_flag_true(request, 'learn_words')
+
+        # проверка наличия выбранных категорий
+        selected_categories = request.session.get('selected_categories', False)
+        if not selected_categories:
+            return redirect('select_category_url')
+
+        # пройдены все шаги по подготовке к процессу обучения
+        # все данные созданы и сохранены в сессии
+        ready_dataset = services.get_flag(request, 'data_ready')
+        if not ready_dataset:
+            # запуск main функции изучения слов
+            services.generate_dataset(request, selected_categories)
+
+        # проверка, что слова не закончились
+        # если функция вернула False, то слова закончились...
+        result = services.handler_learn_words(request)
+        if not result:
+            return redirect('learn_words_url')
+
+        # если все нормально, то получить вопрос и корректный ответ
+        else:
+            question = result[0]
+            correct_answer = result[1]
+
+        # получить список не корректных
+        incorrect_answers = request.session.get('incorrect_answers', False)
+
+        # получить 3 случайных варианта
+        answers = random.choices(k=3, population=incorrect_answers)
+
+        # добавить правильный вариант в список
+        answers.append(correct_answer)
+
+        # перемешать список
+        random.shuffle(answers)
+
+        return render(request, 'dict/word/learn_words.html', {
+            'question': question,
+            'correct_answer': correct_answer,
+            'answers': answers,
+        })
+
+
+# пользователь выбирает категорию или несколько категорий слов для изучения [храним в сессии]
+# достать из базы слова пользователя в соответствии с категориями [
+# в соответствии с рейтингом слов составить общий набор из которого будут браться слова для изучения
+# взять из набора слово для ВОПРОСА и ПРАВИЛЬНЫЙ ОТВЕТ
+# из этого же набора взять 3 слова для неправильных ответов
+# увеличить счетчик на +1 в поле ПОКАЗОВ ВСЕГО
+# если ответ правильный, то увеличить счетчик на +1 в поле ПРАВИЛЬНЫХ ОТВЕТОВ.
+#
+
+# пользователь выбирает категорию или несколько категорий слов для изучения [храним в сессии]
+# достать из базы слова пользователя в соответствии с категориями
+
+# достать из слов поля id, eng, rus - сохранить в словарь
+# структура хранения word learning data - [ {'id': {eng: fire, rus: огонь}}, {'id': {eng: fire, rus: огонь}}, ]
+# сереализивать слова в json
+
+# сгенерировать список не правильных ответов
+# сохранить в сессии в view profile, чтобы список генерировался 1 раз при логине пользователя,
+# исключая лишние обращения в базу
+
+# взять из набора слово для ВОПРОСА и ПРАВИЛЬНЫЙ ОТВЕТ
+# из этого же набора взять 3 слова для неправильных ответов
+# увеличить счетчик на +1 в поле ПОКАЗОВ ВСЕГО
+# если ответ правильный, то увеличить счетчик на +1 в поле ПРАВИЛЬНЫХ ОТВЕТОВ.
+#
+
+# получить категории слов
+# сгенерировать дата сет для изучения: generate_dataset
+# отдать вопрос и варианты ответов в шаблон: question_and_answer options
+
+def post(self, request):
+    pass
+
+
+class DevDeleteSession(LoginRequiredMixin, View):
+
+    def get(self, request):
+        request.session.flush()
+        return redirect('start_page_url')
