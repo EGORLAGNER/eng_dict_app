@@ -234,45 +234,29 @@ class CategoryChange(LoginRequiredMixin, View):
 
 
 class LearWords(LoginRequiredMixin, View):
-    def get(self, request):
-        # флаг указывает намерения учить слова
-        # необходим для class SelectedCategory
-        services.set_flag_true(request, 'learn_words')
+    """
+    Отвечает за основную бизнес логику всего приложения - процесс изучения слов пользователем.
 
+    Процесс изучения слов включает в себя следующие шаги:
+    1. Пользователь (User) выбирает категории (categories) для изучения.
+    2. Формируется набор данных (dataset), который хранится в сессии.
+    """
+    def get(self, request):
         # проверка наличия выбранных категорий
         selected_categories = request.session.get('selected_categories', False)
         if not selected_categories:
+            # флаг указывает намерения учить слова, необходим для view SelectedCategory
+            services.set_flag_true(request, 'learn_words')
             return redirect('select_category_url')
 
-        # пройдены все шаги по подготовке к процессу обучения
-        # все данные созданы и сохранены в сессии
-        ready_dataset = services.get_flag(request, 'data_ready')
-        if not ready_dataset:
-            # запуск main функции изучения слов
+        # набор данных для изучения слов (dataset) не подготовлен
+        # или закончились "слова" в списке для изучения
+        if (not services.get_flag(request, 'data_ready') or
+                services.are_words_exhausted(request)):
             services.generate_dataset(request, selected_categories)
-
-        # проверка, что слова не закончились
-        # если функция вернула False, то слова закончились...
-        result = services.handler_learn_words(request)
-        if not result:
             return redirect('learn_words_url')
 
-        # если все нормально, то получить вопрос и корректный ответ
-        else:
-            question = result[0]
-            correct_answer = result[1]
-
-        # получить список не корректных
-        incorrect_answers = request.session.get('incorrect_answers', False)
-
-        # получить 3 случайных варианта
-        answers = random.choices(k=3, population=incorrect_answers)
-
-        # добавить правильный вариант в список
-        answers.append(correct_answer)
-
-        # перемешать список
-        random.shuffle(answers)
+        question, correct_answer, answers = services.get_question_and_answers(request)
 
         return render(request, 'dict/word/learn_words.html', {
             'question': question,
