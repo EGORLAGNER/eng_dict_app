@@ -90,7 +90,7 @@ def create_dataset(request, categories):
     # word.statistics.save()
 
 
-def _get_words_data_in_session(request):
+def _get_words_data_from_session(request):
     words_data = request.session['dataset'].get('words_data', False)
     return words_data
 
@@ -101,7 +101,7 @@ def is_are_words_exhausted(request):
     Если слова закончились - вернет True,
     В противном случае False.
     """
-    words_data = _get_words_data_in_session(request)
+    words_data = _get_words_data_from_session(request)
     if not words_data:
         set_flag_false(request, 'is_dataset_created')
         print('в списке закончились слова')
@@ -115,7 +115,7 @@ def get_current_words_data(request):
     Функция нарушает принцип единственной ответственности, но так её читать легче.
     """
     # взять список со словами из сессии
-    words_data = _get_words_data_in_session(request)
+    words_data = _get_words_data_from_session(request)
 
     current_word = words_data.pop()
 
@@ -222,7 +222,6 @@ def get_flag(request, variable_name):
         raise TypeError(f'request.session.{variable_name} является {type(value)}, а должен {bool}')
     if value:
         return True
-
     return False
 
 
