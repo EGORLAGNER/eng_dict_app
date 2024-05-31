@@ -20,21 +20,9 @@ class StartPage(View):
 
 class Profile(LoginRequiredMixin, View):
     def get(self, request):
-        if request.method == 'GET':
-            user_name = request.user.username
+        user_name = request.user.username
 
-            # проверка наличия списка не корректных ответов
-            incorrect_answers = request.session.get('incorrect_answers', False)
-
-            # если списка нет, то сгенерировать сохранить
-            if not incorrect_answers:
-                incorrect_answers = services.generate_incorrect_answers()
-                request.session['incorrect_answers'] = incorrect_answers
-
-            return render(request, 'dict/profile.html', context={'user_name': user_name})
-
-        if request.method == 'POST':
-            pass
+        return render(request, 'dict/profile.html', context={'user_name': user_name})
 
 
 class AllUserWords(LoginRequiredMixin, View):
@@ -221,9 +209,9 @@ class CategoryChange(LoginRequiredMixin, View):
         bound_form = CategoryForm(request.POST, instance=category)
         if bound_form.is_valid():
             bound_form.save()
-            id_list_words = request.POST.getlist('words_to_delete_from_category')
-            if id_list_words:
-                words_to_delete = Word.objects.in_bulk(id_list_words)
+            id_words = request.POST.getlist('words_to_delete_from_category')
+            if id_words:
+                words_to_delete = Word.objects.in_bulk(id_words)
                 for key, value in words_to_delete.items():
                     value.delete()
             return render(request, 'dict/category/change_category.html', {'form': bound_form})
@@ -235,20 +223,36 @@ class LearWords(LoginRequiredMixin, View):
     Отвечает за основную бизнес логику всего приложения - процесс изучения слов пользователем.
 
     Процесс изучения слов включает в себя следующие шаги:
-    1. Пользователь (User) выбирает категории (categories) для изучения.
-    2. Формируется набор данных (dataset), который хранится в сессии.
+    При первом обращении к view LearWords:
+        - пользователь переадресовывается для выбора категорий/тем слов.
+        - на основе выбранных категорий формируется набор данных (dataset),
+         который включает в себя:
+         - json_words: все изучаемые слова (объекты модели Word) преобразованные в JSON;
+         - word_data_list: список со словарями, что хранят необходимые данные для изучения слов;
+         - unsaved_word_statistics_list: список со словарями, что хранят статистику слов,
+           правильных и не правильных ответов данных пользователем.
+
+    При каждом GET запросе проверяется наличие еще не изученных, не показанных слов и наличие набора данных (dataset).
+    Если все слова изучены, то статистика по словам обновляется, сохраняется в базе данных.
+
+    Если имеются не изученные слова, то пользователь видит страницу, где имеются:
+        - значение слова на изучаемом языке (question)
+        - несколько вариантов ответов(в зависимости от выбранной пользователем сложности).
+        - возможность увидеть правильный ответ.
     """
 
     def get(self, request):
-        selected_categories = request.session.get('selected_categories', False)
-        if not selected_categories:
-            # флаг указывает намерения учить слова, необходим для view SelectedCategory
-            services.set_flag_true(request, 'learn_words')
-            return redirect('select_category_url')
 
         # dataset не создан или закончились "слова"
-        if (not services.created_dataset(request) or
-                services.are_words_exhausted(request)):
+        if not services.is_created_dataset(request) or services.is_are_words_exhausted(request):
+
+            # выбранные пользователем категории слов для изучения
+            selected_categories = services.get_selected_categories(request)
+            if not selected_categories:
+                # флаг используется в view SelectedCategory
+                services.set_flag_true(request, 'learn_words')
+                return redirect('select_category_url')
+
             services.create_dataset(request, selected_categories)
             return redirect('learn_words_url')
 
