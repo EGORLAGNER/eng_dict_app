@@ -4,11 +4,8 @@ from django.shortcuts import render, redirect
 from django.views.generic import View
 
 from dict.models import *
-
 from .forms import WordForm, CategoryForm, SelectCategoryForm
-
 from dict.services import services
-import random
 
 
 class StartPage(View):
@@ -241,19 +238,18 @@ class LearWords(LoginRequiredMixin, View):
     1. Пользователь (User) выбирает категории (categories) для изучения.
     2. Формируется набор данных (dataset), который хранится в сессии.
     """
+
     def get(self, request):
-        # проверка наличия выбранных категорий
         selected_categories = request.session.get('selected_categories', False)
         if not selected_categories:
             # флаг указывает намерения учить слова, необходим для view SelectedCategory
             services.set_flag_true(request, 'learn_words')
             return redirect('select_category_url')
 
-        # набор данных для изучения слов (dataset) не подготовлен
-        # или закончились "слова" в списке для изучения
-        if (not services.get_flag(request, 'data_ready') or
+        # dataset не создан или закончились "слова"
+        if (not services.created_dataset(request) or
                 services.are_words_exhausted(request)):
-            services.generate_dataset(request, selected_categories)
+            services.create_dataset(request, selected_categories)
             return redirect('learn_words_url')
 
         question, correct_answer, answers = services.get_question_and_answers(request)
