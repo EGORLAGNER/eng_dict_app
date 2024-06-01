@@ -265,7 +265,13 @@ class LearWords(LoginRequiredMixin, View):
         })
 
     def post(self, request):
+        request.session['dataset']['unsaved_words_statistics'] = []
         print()
+        correct_answer = services.is_user_give_correct_answer(request)
+        if correct_answer:
+            services.save_updated_word_statistic_in_session(request, True)
+        services.save_updated_word_statistic_in_session(request, False)
+        print('')
         return render(request, 'dict/word/learn_words.html')
 
 

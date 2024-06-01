@@ -11,7 +11,7 @@ def _get_words_by_selected_categories(categories):
     return Word.objects.filter(category__slug__in=categories).distinct()
 
 
-def _get_word_data(queryset):
+def _get_words_data(queryset):
     """
     Возвращает список со словарями.
     Словари хранят в себе данные слов, необходимые для процесса изучения слов.
@@ -24,7 +24,11 @@ def _get_word_data(queryset):
         eng = word.eng
         rus = word.rus
 
-        word_data = {'word_id': word_id, 'eng': eng, 'rus': rus}
+        word_data = {'word_id': word_id,
+                     'eng': eng,
+                     'rus': rus,
+                     'correct_answer': None,
+                     'incorrect_answer': None}
 
         data.append(word_data)
     return data
@@ -50,7 +54,7 @@ def create_dataset(request, categories):
     json_words = serializers.serialize('json', words)
 
     # получить данные необходимые для изучения слов (самый главный список с полями)
-    words_data = _get_word_data(words)
+    words_data = _get_words_data(words)
 
     # перемешать список
     random.shuffle(words_data)
@@ -58,7 +62,7 @@ def create_dataset(request, categories):
     # словарь со всеми данными, для сохранения в сессии
     dataset = {
         'words_data': words_data,
-        'unsaved_word_statistics': unsaved_words_statistics,
+        'unsaved_words_statistics': unsaved_words_statistics,
         'json_words': json_words
     }
 
@@ -127,33 +131,6 @@ def get_current_words_data(request):
     translation = current_word['rus']
 
     return meaning, translation
-
-
-# def get_word_data_list(request):
-#     return request.session['dataset'].get('word_data_list', False)
-#
-#
-# def check_and_set_flag(request, word_data_list):
-#     if not word_data_list or len(word_data_list) == 0:
-#         set_flag_false(request, 'data_ready')
-#         return False
-#     return True
-#
-#
-# def save_current_word_to_session(request, current_word):
-#     request.session['current_word'] = current_word
-#
-#
-# def get_meaning_and_translation(request):
-#     word_data_list = get_word_data_list(request)
-#     if not check_and_set_flag(request, word_data_list):
-#         return
-#
-#     current_word = word_data_list.pop()
-#     save_current_word_to_session(request, current_word)
-#     meaning = current_word['eng']
-#     translation = current_word['rus']
-#     return meaning, translation
 
 
 def get_random_incorrect_answers(request, value_answers):
@@ -235,3 +212,44 @@ def get_model_objects_from_deserialized_objects(objects):
 
 def convert_deserialize_objects_to_json(objects):
     return serializers.serialize('json', objects)
+
+
+# ==========================================================
+
+def get_current_word(request):
+    return request.session.get('current_word', False)
+
+
+def get_user_answer(request):
+    return request.POST.get('user_answer', False)
+
+
+def get_correct_answer(request):
+    """Пучить правильный ответ."""
+    current_word_data = get_current_word(request)
+    return current_word_data.get('rus', False)
+
+
+def is_user_give_correct_answer(request):
+    """Оценка правильности ответа пользователя."""
+    user_answer = get_user_answer(request)
+    correct_answer = get_correct_answer(request)
+
+    if user_answer == correct_answer:
+        return True
+    return False
+
+
+def _append_current_word_data_in_unsaved_words_statistics(request, current_word_data):
+    unsaved_words_statistics = request.session['dataset'].get('unsaved_words_statistics')
+    return unsaved_words_statistics.append(current_word_data)
+
+
+def save_updated_word_statistic_in_session(request, user_give_correct_answer=False):
+    current_word_data = get_current_word(request)
+    if not user_give_correct_answer:
+        current_word_data['correct_answer'] = False
+        return _append_current_word_data_in_unsaved_words_statistics(request, current_word_data)
+
+    current_word_data['correct_answer'] = True
+    return _append_current_word_data_in_unsaved_words_statistics(request, current_word_data)
