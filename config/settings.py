@@ -152,4 +152,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'account.User'
 LOGIN_REDIRECT_URL = '/profile/'
 LOGOUT_REDIRECT_URL = '/'
-LOGIN_URL = '/account/login/' # URL на который перенаправляется не авторизованный пользователь
+LOGIN_URL = '/account/login/'  # URL на который перенаправляется не авторизованный пользователь
+
+SESSION_SAVE_EVERY_REQUEST = True

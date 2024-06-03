@@ -8,7 +8,7 @@ def _get_words_by_selected_categories(categories):
     """
     Вернет все слова согласно выбранным категориям
     """
-    return Word.objects.filter(category__slug__in=categories).distinct()
+    return Word.objects.filter(category__slug__in=categories).distinct()[:3]
 
 
 def _get_words_data(queryset):
@@ -107,7 +107,7 @@ def is_are_words_exhausted(request):
     """
     words_data = _get_words_data_from_session(request)
     if not words_data:
-        set_flag_false(request, 'is_dataset_created')
+        set_flag_true(request, 'is_are_words_exhausted')
         print('в списке закончились слова')
         return True
 
@@ -204,7 +204,7 @@ def get_flag(request, variable_name):
 
 def get_model_objects_from_deserialized_objects(objects):
     model_objects = []
-    for item in objects:
+    for item in list(objects):
         model_objects.append(item.object)
 
     return model_objects
@@ -245,7 +245,7 @@ def _append_current_word_data_in_unsaved_words_statistics(request, current_word_
     return unsaved_words_statistics.append(current_word_data)
 
 
-def save_updated_word_statistic_in_session(request, user_give_correct_answer=False):
+def save_updated_words_statistics_in_session(request, user_give_correct_answer=False):
     current_word_data = get_current_word(request)
     if not user_give_correct_answer:
         current_word_data['correct_answer'] = False
@@ -253,3 +253,35 @@ def save_updated_word_statistic_in_session(request, user_give_correct_answer=Fal
 
     current_word_data['correct_answer'] = True
     return _append_current_word_data_in_unsaved_words_statistics(request, current_word_data)
+
+
+def _get_unsaved_words_statistics_from_session(request):
+    return request.session['dataset'].get('unsaved_words_statistics')
+
+
+def _get_json_words_from_session(request):
+    return request.session['dataset'].get('json_words')
+
+
+def _deserialize_json(json):
+    return serializers.deserialize('json', json)
+
+
+def updates_words_statistics_in_db(request):
+    words_statistics = _get_unsaved_words_statistics_from_session(request)
+    json = _get_json_words_from_session(request)
+    deserialize_objects = _deserialize_json(json)
+    words_objects = get_model_objects_from_deserialized_objects(deserialize_objects)
+    print()
+    print()
+
+
+def print_super_list(request, message, value_for_append=False):
+    if not value_for_append:
+        print(request.session['super_list'])
+        print()
+        return
+    print(message)
+    request.session['super_list'].append(value_for_append)
+    print(request.session['super_list'])
+    print()
