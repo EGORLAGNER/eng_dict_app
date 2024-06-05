@@ -256,16 +256,7 @@ class LearWords(LoginRequiredMixin, View):
             return redirect('learn_words_url')
 
         if services.is_are_words_exhausted(request):
-            (amount_learn_words,
-             amount_correct_answers,
-             amount_incorrect_answers) = services.updates_words_statistics_in_db(request)
-            print('сохранить слова в базе')
-            services.set_flag_false(request, 'is_dataset_created')
-
-            return render(request, 'dict/word/learn_words_result.html',
-                          {'amount_learn_words': amount_learn_words,
-                           'amount_correct_answers': amount_correct_answers,
-                           'amount_incorrect_answers': amount_incorrect_answers})
+            redirect('learn_words_completed_url')
 
         question, correct_answer, answers = services.get_question_and_answers(request)
         services.save_question_and_correct_answer_in_session(request, question, correct_answer)
@@ -291,3 +282,26 @@ class DevDeleteSession(LoginRequiredMixin, View):
     def get(self, request):
         request.session.flush()
         return redirect('start_page_url')
+
+
+class LearWordsCompleted(LoginRequiredMixin, View):
+    """
+    Отвечает за сохранение статистики изучения слов в базе данных и вывод результатов обучения.
+    Используется, когда:
+    - слова закончились или пользователь принудительно завершил процесс;
+    - основную бизнес логику всего приложения - процесс изучения слов пользователем;
+    """
+    def get(self, request):
+        if not services.is_created_dataset(request):
+            return render(request, 'dict/word/learn_words_result.html',
+                          {'message': 'нечего сохранять'})
+        (amount_learn_words,
+         amount_correct_answers,
+         amount_incorrect_answers) = services.updates_words_statistics_in_db(request)
+        print('сохранить слова в базе')
+        services.set_flag_false(request, 'is_dataset_created')
+
+        return render(request, 'dict/word/learn_words_result.html',
+                      {'amount_learn_words': amount_learn_words,
+                       'amount_correct_answers': amount_correct_answers,
+                       'amount_incorrect_answers': amount_incorrect_answers})

@@ -18,6 +18,7 @@ urlpatterns = [
     path('add_categories_to_words/', AddCategoriesToWords.as_view(), name='add_categories_to_words_url'),
 
     path('learn_words/', LearWords.as_view(), name='learn_words_url'),
+    path('learn_words_completed/', LearWordsCompleted.as_view(), name='learn_words_completed_url'),
 
     path('delete_session/', DevDeleteSession.as_view(), name='delete_session_url'),
 ]
