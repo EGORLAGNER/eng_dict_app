@@ -8,7 +8,11 @@ def _get_words_by_selected_categories(categories):
     """
     Вернет все слова согласно выбранным категориям
     """
-    return Word.objects.filter(category__slug__in=categories).distinct()[:3]
+    # return Word.objects.filter(category__slug__in=categories).distinct()
+
+    # запрос на время тестов
+    eng_fields = ['call', 'buy', 'clean', 'close', 'cook']
+    return Word.objects.filter(category__slug__in=categories).filter(eng__in=eng_fields).distinct()[:5]
 
 
 def _get_words_data(queryset):
@@ -27,8 +31,8 @@ def _get_words_data(queryset):
         word_data = {'word_id': word_id,
                      'eng': eng,
                      'rus': rus,
-                     'correct_answer': None,
-                     'incorrect_answer': None}
+                     'is_user_gave_answer': False,
+                     'is_correct_answer': False, }
 
         data.append(word_data)
     return data
@@ -150,6 +154,14 @@ def get_question_and_answers(request):
     return question, correct_answer, answers
 
 
+def save_question_and_correct_answer_in_session(request, question, correct_answer):
+    request.session['question_and_correct_answer'] = (question, correct_answer)
+
+
+def get_question_and_correct_answer_from_session(request):
+    return request.session.get('question_and_correct_answer', False)
+
+
 def is_created_dataset(request):
     return get_flag(request, 'is_dataset_created')
 
@@ -245,14 +257,24 @@ def _append_current_word_data_in_unsaved_words_statistics(request, current_word_
     return unsaved_words_statistics.append(current_word_data)
 
 
-def save_updated_words_statistics_in_session(request, user_give_correct_answer=False):
+def change_words_statistics(request):
+    """
+    Изменяет статистику слова в зависимости от того, дал User правильный или не правильный ответ.
+    is_user_gave_answer = True - флаг сигнализирует, что пользователь был на странице и видел слово и дал ответ.
+    is_user_gave_answer = Flag - флаг сигнализирует, что пользователь был на странице и видел слово и не дал ответ,
+    и покинул сайт.
+    """
     current_word_data = get_current_word(request)
-    if not user_give_correct_answer:
-        current_word_data['correct_answer'] = False
-        return _append_current_word_data_in_unsaved_words_statistics(request, current_word_data)
 
-    current_word_data['correct_answer'] = True
-    return _append_current_word_data_in_unsaved_words_statistics(request, current_word_data)
+    if is_user_give_correct_answer(request):
+        current_word_data['is_user_gave_answer'] = True
+        current_word_data['is_correct_answer'] = True
+        _append_current_word_data_in_unsaved_words_statistics(request, current_word_data)
+        return
+    current_word_data['is_user_gave_answer'] = True
+    current_word_data['is_correct_answer'] = False
+    _append_current_word_data_in_unsaved_words_statistics(request, current_word_data)
+    return
 
 
 def _get_unsaved_words_statistics_from_session(request):
@@ -272,16 +294,36 @@ def updates_words_statistics_in_db(request):
     json = _get_json_words_from_session(request)
     deserialize_objects = _deserialize_json(json)
     words_objects = get_model_objects_from_deserialized_objects(deserialize_objects)
-    print()
-    print()
 
-
-def print_super_list(request, message, value_for_append=False):
-    if not value_for_append:
-        print(request.session['super_list'])
-        print()
-        return
-    print(message)
-    request.session['super_list'].append(value_for_append)
-    print(request.session['super_list'])
     print()
+    print(words_statistics)
+    amount_learn_words = 0
+    amount_correct_answers = 0
+    amount_incorrect_answers = 0
+
+    for word_object in words_objects:
+        for word_data in words_statistics:
+            if word_object.id == word_data.get('word_id'):
+                # ответ правильный
+                if word_data.get('is_user_gave_answer') and word_data.get('is_correct_answer'):
+                    print('ответ правильный')
+                    word_object.statistics.learning_counter += 1
+                    word_object.statistics.correct_answer_counter += 10
+                    amount_learn_words += 1
+                    amount_correct_answers += 1
+                    word_object.statistics.save()
+                    word_object.save()
+
+                if word_data.get('is_user_gave_answer') and not word_data.get('is_correct_answer'):
+                    print('ответ не правильный')
+                    word_object.statistics.learning_counter += 1
+                    word_object.statistics.incorrect_answer_counter += 7
+                    amount_learn_words += 1
+                    amount_incorrect_answers += 1
+                    word_object.statistics.save()
+                    word_object.save()
+
+                if not word_data.get('is_user_gave_answer') and not word_data.get('is_correct_answer'):
+                    print('не был дан ответ')
+
+    return amount_learn_words, amount_correct_answers, amount_incorrect_answers

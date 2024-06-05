@@ -242,9 +242,8 @@ class LearWords(LoginRequiredMixin, View):
     """
 
     def get(self, request):
-
         # dataset не создан или закончились "слова"
-        if not services.is_created_dataset(request) or services.is_are_words_exhausted(request):
+        if not services.is_created_dataset(request):
 
             # выбранные пользователем категории слов для изучения
             selected_categories = services.get_selected_categories(request)
@@ -256,7 +255,20 @@ class LearWords(LoginRequiredMixin, View):
             services.create_dataset(request, selected_categories)
             return redirect('learn_words_url')
 
+        if services.is_are_words_exhausted(request):
+            (amount_learn_words,
+             amount_correct_answers,
+             amount_incorrect_answers) = services.updates_words_statistics_in_db(request)
+            print('сохранить слова в базе')
+            services.set_flag_false(request, 'is_dataset_created')
+
+            return render(request, 'dict/word/learn_words_result.html',
+                          {'amount_learn_words': amount_learn_words,
+                           'amount_correct_answers': amount_correct_answers,
+                           'amount_incorrect_answers': amount_incorrect_answers})
+
         question, correct_answer, answers = services.get_question_and_answers(request)
+        services.save_question_and_correct_answer_in_session(request, question, correct_answer)
 
         return render(request, 'dict/word/learn_words.html', {
             'question': question,
@@ -265,14 +277,13 @@ class LearWords(LoginRequiredMixin, View):
         })
 
     def post(self, request):
-        request.session['dataset']['unsaved_words_statistics'] = []
-        print()
-        correct_answer = services.is_user_give_correct_answer(request)
-        if correct_answer:
-            services.save_updated_word_statistic_in_session(request, True)
-        services.save_updated_word_statistic_in_session(request, False)
-        print('')
-        return render(request, 'dict/word/learn_words.html')
+        services.change_words_statistics(request)
+        question, correct_answer = services.get_question_and_correct_answer_from_session(request)
+        if services.is_user_give_correct_answer(request):
+            return render(request, 'dict/word/learn_words_evaluation.html',
+                          {'evaluation': 'правильно', 'question': question, 'correct_answer': correct_answer})
+        return render(request, 'dict/word/learn_words_evaluation.html',
+                      {'evaluation': 'не правильно', 'question': question, 'correct_answer': correct_answer})
 
 
 class DevDeleteSession(LoginRequiredMixin, View):
