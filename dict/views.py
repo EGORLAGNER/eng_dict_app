@@ -256,7 +256,7 @@ class LearWords(LoginRequiredMixin, View):
             return redirect('learn_words_url')
 
         if services.is_are_words_exhausted(request):
-            redirect('learn_words_completed_url')
+            return redirect('learn_words_completed_url')
 
         question, correct_answer, answers = services.get_question_and_answers(request)
         services.save_question_and_correct_answer_in_session(request, question, correct_answer)
@@ -291,6 +291,7 @@ class LearWordsCompleted(LoginRequiredMixin, View):
     - слова закончились или пользователь принудительно завершил процесс;
     - основную бизнес логику всего приложения - процесс изучения слов пользователем;
     """
+
     def get(self, request):
         if not services.is_created_dataset(request):
             return render(request, 'dict/word/learn_words_result.html',
