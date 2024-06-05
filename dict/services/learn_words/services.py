@@ -137,16 +137,24 @@ def get_current_words_data(request):
     return meaning, translation
 
 
-def get_random_incorrect_answers(request, value_answers):
+def get_random_incorrect_answer(request):
     incorrect_answers = get_or_create_incorrect_answers(request)
-    answers = random.choices(k=value_answers, population=incorrect_answers)
-    return answers
+    index = random.randint(0, len(incorrect_answers) - 1)
+    answer = incorrect_answers[index]
+
+    return answer
 
 
-def get_question_and_answers(request):
+def get_question_and_answers(request, amount_answers=3):
     question, correct_answer = get_current_words_data(request)
 
-    answers = get_random_incorrect_answers(request, 3)
+    answers = []
+    while len(answers) < amount_answers:
+        incorrect_answer = get_random_incorrect_answer(request)
+        if correct_answer == incorrect_answer:
+            continue
+        else:
+            answers.append(incorrect_answer)
 
     answers.append(correct_answer)
 
