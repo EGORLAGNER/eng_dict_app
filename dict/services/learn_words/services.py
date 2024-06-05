@@ -295,8 +295,6 @@ def updates_words_statistics_in_db(request):
     deserialize_objects = _deserialize_json(json)
     words_objects = get_model_objects_from_deserialized_objects(deserialize_objects)
 
-    print()
-    print(words_statistics)
     amount_learn_words = 0
     amount_correct_answers = 0
     amount_incorrect_answers = 0
@@ -308,7 +306,7 @@ def updates_words_statistics_in_db(request):
                 if word_data.get('is_user_gave_answer') and word_data.get('is_correct_answer'):
                     print('ответ правильный')
                     word_object.statistics.learning_counter += 1
-                    word_object.statistics.correct_answer_counter += 10
+                    word_object.statistics.correct_answer_counter += 1
                     amount_learn_words += 1
                     amount_correct_answers += 1
                     word_object.statistics.save()
@@ -317,7 +315,7 @@ def updates_words_statistics_in_db(request):
                 if word_data.get('is_user_gave_answer') and not word_data.get('is_correct_answer'):
                     print('ответ не правильный')
                     word_object.statistics.learning_counter += 1
-                    word_object.statistics.incorrect_answer_counter += 7
+                    word_object.statistics.incorrect_answer_counter += 1
                     amount_learn_words += 1
                     amount_incorrect_answers += 1
                     word_object.statistics.save()
