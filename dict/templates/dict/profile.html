@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h3>{{ user_name|upper }}</h3>
+    <h3><p>слова:</p></h3>
+    <p><a href="{% url 'create_word_url' %}">добавить новое слово</a></p>
+    <p><a href="{% url 'all_user_words_url' %}">все слова</a></p>
+    <h3><p>категории:</p></h3>
+    <p><a href="{% url 'create_category_url' %}">добавить новую категорию</a></p>
+    <p><a href="{% url 'all_user_categories_url' %}">все категории</a></p>
+    <p><a href="{% url 'learn_words_url' %}">учить слова</a></p>
+{% endblock %}
+
+

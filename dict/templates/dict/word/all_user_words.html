@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="search">
+        <form class="d-flex" role="search" action="{% url 'all_user_words_url' %}">
+            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search">
+            <button class="btn btn-outline-success" type="submit">Search</button>
+        </form>
+    </div>
+    <div class="user_words">
+        <h3>Список всех слов:</h3>
+        <form method="post">
+            {% csrf_token %}
+            {% for word in page_obj %}
+                <p>
+                    <input value="{{ word.id }}" name="selected_words" type="checkbox"/>
+                    <a href="{{ word.get_change_url }}">[{{ word.rating }}] {{ word.eng }} - {{ word.rus }}</a>
+                    {% if words.description %}
+                        ({{ word.description }})
+                    {% endif %}
+                    {% for cat in word.category.all %}
+                        {% if cat %}
+                            <a href="{{ cat.get_absolute_url }}">[{{ cat|upper }}]</a>
+                        {% endif %}
+                    {% endfor %}
+                </p>
+            {% endfor %}
+            <button type="submit" name="flag_delete_word" value="True">удалить слова</button>
+            <button type="submit" name="flag_set_category_to_word" value="True">назначить категорию</button>
+        </form>
+    </div>
+
+    <div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+    </div>
+{% endblock %}
+
+
+

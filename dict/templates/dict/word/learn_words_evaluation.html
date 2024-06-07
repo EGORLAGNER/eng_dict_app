@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h3>{{ evaluation }}</h3>
+    <h3>{{ question }} - {{ correct_answer }}</h3>
+    <form method="get" action="{% url 'learn_words_url' %}">
+        <button type="submit">следующее слово</button>
+    </form>
+{% endblock %}
+
+
+
