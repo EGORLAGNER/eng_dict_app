@@ -298,6 +298,11 @@ def _deserialize_json(json):
 
 
 def updates_words_statistics_in_db(request):
+    """
+    Обновляет статистику изученных слов в базе данных
+    :param request:
+    :return: количество: изученных слов, верных и не верных ответов
+    """
     words_statistics = _get_unsaved_words_statistics_from_session(request)
     json = _get_json_words_from_session(request)
     deserialize_objects = _deserialize_json(json)
